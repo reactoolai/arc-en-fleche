@@ -76,6 +76,16 @@ const rawHtmlPlugin = () => ({
         this.emitFile({ type: "asset", fileName: f, source: readFileSync(p) });
       }
     }
+    // Copy public root-level assets (banner, etc.) so they resolve in production builds
+    const publicDir = join(process.cwd(), "public");
+    if (existsSync(publicDir)) {
+      for (const file of readdirSync(publicDir)) {
+        const fp = join(publicDir, file);
+        if (existsSync(fp) && file.endsWith(".png")) {
+          this.emitFile({ type: "asset", fileName: file, source: readFileSync(fp) });
+        }
+      }
+    }
   },
 });
 
