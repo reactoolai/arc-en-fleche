@@ -940,11 +940,16 @@ class Component extends DCLogic {
     this._timer = setInterval(() => { if (this.state.page === "accueil") this.heroGo(this.state.hero + 1); }, 5000);
     try {
       const staticData = await import(new URL("./data.js", document.baseURI).href);
-      const sb = await this.ensureSupabase();
-      await this.loadCatalog();
-      this.setState({ data: { ...staticData, CATS: this.state.dbCats, PRODUITS: this.state.dbProds } });
+      this.setState({ data: staticData });
       if (this.props.panierDemo) this.setState({ cart: { 1: 1, 2: 2 } });
       if (this.props.pageInitiale) this.setState({ page: this.props.pageInitiale });
+    } catch (err) {
+      console.error("Static data load error:", err);
+    }
+    try {
+      const sb = await this.ensureSupabase();
+      await this.loadCatalog();
+      this.updateData();
       const { data: { session } } = await sb.auth.getSession();
       if (session) await this.handleSession(session);
       sb.auth.onAuthStateChange((event, session) => {
@@ -954,7 +959,7 @@ class Component extends DCLogic {
         })();
       });
     } catch (err) {
-      console.error("Init error:", err);
+      console.error("DB init error:", err);
     }
   }
   async loadCatalog() {
