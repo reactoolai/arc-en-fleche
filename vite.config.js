@@ -58,6 +58,17 @@ const rawHtmlPlugin = () => ({
         });
       }
     }
+    // Copy public/album photo directory so album images resolve in production builds
+    const albumDir = join(process.cwd(), "public", "album photo");
+    if (existsSync(albumDir)) {
+      for (const file of readdirSync(albumDir)) {
+        this.emitFile({
+          type: "asset",
+          fileName: "album photo/" + file,
+          source: readFileSync(join(albumDir, file)),
+        });
+      }
+    }
   },
 });
 
