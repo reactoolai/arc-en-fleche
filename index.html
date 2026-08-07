@@ -584,7 +584,7 @@ a:hover{color:oklch(0.46 0.08 30);}
           <div style="display:flex;justify-content:space-between;color:oklch(0.38 0.015 60)"><span>{{ h.jour }}</span><span style="font-family:'Oswald',sans-serif;letter-spacing:0.04em">{{ h.plage }}</span></div>
         </sc-for>
       </div>
-      <div style="aspect-ratio:16/9;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 14px, oklch(0.89 0.012 85) 14px, oklch(0.89 0.012 85) 28px);border:1px solid oklch(0.80 0.02 80);display:flex;align-items:center;justify-content:center"><span style="font-family:monospace;font-size:13px;color:oklch(0.55 0.02 60)">carte — google maps</span></div>
+      <div style="aspect-ratio:16/9;border:1px solid oklch(0.80 0.02 80);overflow:hidden;border-radius:2px;position:relative"><iframe src="https://www.google.com/maps?q=413+Rue+St-Alphonse+Saint-Bruno+QC+G0W2L0&output=embed" style="width:100%;height:100%;border:0;position:absolute;inset:0" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Carte — 413, rue St-Alphonse, Saint-Bruno"></iframe></div>
     </div>
     <div style="background:oklch(0.99 0.004 85);border:2px solid oklch(0.23 0.012 60);padding:36px">
       <div style="font-family:'Oswald',sans-serif;font-size:22px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">Écrivez-nous</div>
@@ -608,7 +608,10 @@ a:hover{color:oklch(0.46 0.08 30);}
 
 <sc-if value="{{ pCart }}" hint-placeholder-val="{{ false }}">
 <div class="r-cart-section" data-screen-label="Panier" style="max-width:1100px;margin:0 auto;padding:64px 32px 80px">
-  <h1 class="r-h1-md" style="font-family:'Oswald',sans-serif;font-size:44px;text-transform:uppercase;letter-spacing:0.03em;margin:0 0 36px">Votre panier</h1>
+  <div style="display:flex;align-items:center;gap:18px;margin-bottom:28px">
+    <img src="uploads/logo_arc_en_fleche.jpg" alt="Arc En Flèche" style="width:76px;height:76px;object-fit:contain;background:#fff;display:block">
+    <h1 class="r-h1-md" style="font-family:'Oswald',sans-serif;font-size:44px;text-transform:uppercase;letter-spacing:0.03em;margin:0">Votre panier</h1>
+  </div>
   <sc-if value="{{ cartEmpty }}" hint-placeholder-val="{{ false }}">
     <div style="text-align:center;padding:72px 24px;border:1px dashed oklch(0.65 0.02 70)">
       <div style="font-family:'Oswald',sans-serif;font-size:22px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Votre panier est vide</div>
@@ -855,17 +858,17 @@ a:hover{color:oklch(0.46 0.08 30);}
 <div onClick="{{ closeAuth }}" style="position:fixed;inset:0;background:oklch(0.15 0.01 60 / 0.55);z-index:100;display:flex;align-items:center;justify-content:center;padding:24px">
   <div onClick="{{ stopClick }}" style="background:oklch(0.965 0.008 85);border:2px solid oklch(0.23 0.012 60);max-width:440px;width:100%;padding:36px;position:relative">
     <button onClick="{{ closeAuth }}" style="position:absolute;top:12px;right:14px;background:transparent;border:none;font-size:22px;cursor:pointer;color:oklch(0.45 0.015 60)" style-hover="color:oklch(0.23 0.012 60)">×</button>
-    <img src="uploads/logo_arc_en_fleche.jpg" alt="Arc En Flèche" style="height:72px;mix-blend-mode:multiply;display:block;margin:0 auto 18px">
+    <img src="uploads/logo_arc_en_fleche.jpg" alt="Arc En Flèche" style="height:72px;width:120px;object-fit:contain;background:#fff;display:block;margin:0 auto 18px">
     <div style="display:flex;border:1px solid oklch(0.23 0.012 60);border-radius:2px;overflow:hidden;margin-bottom:24px">
       <div onClick="{{ authModeLogin }}" style="flex:1;text-align:center;padding:10px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;background:{{ tabLoginBg }};color:{{ tabLoginCol }}">Connexion</div>
       <div onClick="{{ authModeSignup }}" style="flex:1;text-align:center;padding:10px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;background:{{ tabSignupBg }};color:{{ tabSignupCol }};border-left:1px solid oklch(0.23 0.012 60)">Créer un compte</div>
     </div>
     <div style="display:flex;flex-direction:column;gap:14px">
       <sc-if value="{{ authSignup }}" hint-placeholder-val="{{ false }}">
-        <input value="{{ authName }}" onInput="{{ setAuthName }}" placeholder="Nom complet" style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
+        <input onChange="{{ setAuthName }}" placeholder="Nom complet" style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
       </sc-if>
-      <input value="{{ authEmail }}" onInput="{{ setAuthEmail }}" placeholder="Courriel" style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
-      <input value="{{ authPassword }}" onInput="{{ setAuthPassword }}" placeholder="Mot de passe" type="password" style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
+      <input onChange="{{ setAuthEmail }}" placeholder="Courriel" style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
+      <input onChange="{{ setAuthPassword }}" placeholder="Mot de passe" type="password" style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
       <sc-if value="{{ authError }}" hint-placeholder-val="{{ false }}">
         <div style="color:oklch(0.45 0.12 25);font-size:13px;padding:8px 12px;background:oklch(0.92 0.04 25);border:1px solid oklch(0.65 0.12 25);border-radius:2px">{{ authError }}</div>
       </sc-if>
