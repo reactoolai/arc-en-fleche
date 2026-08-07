@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, existsSync, readdirSync } from "fs";
 import { join, extname } from "path";
 
 const mimeTypes = {
@@ -47,6 +47,17 @@ const rawHtmlPlugin = () => ({
     // Emit the raw HTML file as-is, skipping Vite's HTML/CSS pipeline entirely
     const content = readFileSync(join(process.cwd(), "index.html"), "utf-8");
     this.emitFile({ type: "asset", fileName: "index.html", source: content });
+    // Copy uploads directory so images resolve in production builds
+    const uploadsDir = join(process.cwd(), "uploads");
+    if (existsSync(uploadsDir)) {
+      for (const file of readdirSync(uploadsDir)) {
+        this.emitFile({
+          type: "asset",
+          fileName: "uploads/" + file,
+          source: readFileSync(join(uploadsDir, file)),
+        });
+      }
+    }
   },
 });
 
