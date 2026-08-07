@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/jpeg" href="uploads/logo_arc_en_fleche.jpg">
+<link rel="apple-touch-icon" href="uploads/logo_arc_en_fleche.jpg">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&amp;family=Lora:ital,wght@0,400;0,500;0,600;1,400&amp;display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;padding:0;background:oklch(0.965 0.008 85);}
+body{font-family:'Lora',serif;color:oklch(0.23 0.012 60);}
+a{color:oklch(0.46 0.08 55);text-decoration:none;}
+a:hover{color:oklch(0.46 0.08 30);}
+*{box-sizing:border-box;}
+::selection{background:oklch(0.46 0.08 55);color:oklch(0.97 0.008 85);}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;background:oklch(0.965 0.008 85)">
+
+<sc-if value="{{ promoVisible }}" hint-placeholder-val="{{ true }}">
+<div style="background:oklch(0.22 0.012 60);color:oklch(0.94 0.012 85);text-align:center;padding:8px 16px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.18em;text-transform:uppercase;font-weight:500">— Livraison gratuite à partir de 150 $ · Partout au Québec —</div>
+</sc-if>
+
+<header style="position:sticky;top:0;z-index:50;background:oklch(0.965 0.008 85 / 0.95);backdrop-filter:blur(12px);border-bottom:2px solid oklch(0.23 0.012 60)">
+  <div style="max-width:1240px;margin:0 auto;padding:0 32px;display:flex;align-items:center;gap:40px;height:84px">
+    <div onClick="{{ goHome }}" style="display:flex;align-items:center;gap:14px;cursor:pointer;flex-shrink:0">
+      <img src="uploads/logo_arc_en_fleche.jpg" alt="Arc En Flèche" style="height:68px;mix-blend-mode:multiply">
+      <div>
+        <div style="font-family:'Oswald',sans-serif;font-weight:600;font-size:19px;letter-spacing:0.16em;text-transform:uppercase;line-height:1">Arc En Flèche</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:oklch(0.50 0.02 60);margin-top:4px">Précision · Passion · Tradition</div>
+      </div>
+    </div>
+    <nav style="display:flex;gap:28px;flex:1;justify-content:center">
+      <sc-for list="{{ navItems }}" as="it" hint-placeholder-count="6">
+        <div onMouseEnter="{{ it.enter }}" onMouseLeave="{{ it.leave }}" style="position:relative">
+          <div onClick="{{ it.go }}" style="font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;padding:6px 2px;border-bottom:2px solid {{ it.bord }};color:{{ it.col }}" style-hover="color:oklch(0.46 0.08 55)">{{ it.label }}</div>
+          <sc-if value="{{ it.menu }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;top:100%;left:50%;transform:translateX(-50%);padding-top:10px;z-index:60">
+              <div style="background:oklch(0.965 0.008 85);border:2px solid oklch(0.23 0.012 60);min-width:280px;box-shadow:0 16px 40px oklch(0 0 0 / 0.18)">
+                <sc-for list="{{ menuCats }}" as="mc" hint-placeholder-count="8">
+                  <div onClick="{{ mc.go }}" style="padding:11px 18px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-bottom:1px solid oklch(0.88 0.012 85);display:flex;justify-content:space-between;gap:16px" style-hover="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85)"><span>{{ mc.nom }}</span><span style="color:oklch(0.55 0.06 60)">{{ mc.n }}</span></div>
+                </sc-for>
+                <div onClick="{{ goShopAll }}" style="padding:11px 18px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;color:oklch(0.46 0.08 55)" style-hover="background:oklch(0.22 0.012 60)">Tous les produits →</div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </nav>
+    <div style="display:flex;align-items:center;gap:16px;flex-shrink:0">
+      <a href="tel:+14183433301" style="font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.08em;color:oklch(0.23 0.012 60)">418 343-3301</a>
+      <sc-if value="{{ notLoggedIn }}" hint-placeholder-val="{{ true }}">
+        <div onClick="{{ openAuth }}" title="Connexion / Créer un compte" style="width:38px;height:38px;border:1px solid oklch(0.23 0.012 60);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:oklch(0.23 0.012 60)" style-hover="background:oklch(0.23 0.012 60);color:oklch(0.96 0.008 85)">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="6" r="3.2"></circle><path d="M2.5 16 C2.5 12.5 5.4 10.8 9 10.8 C12.6 10.8 15.5 12.5 15.5 16"></path></svg>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isLoggedIn }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:10px">
+          <sc-if value="{{ userIsAdmin }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ goAdmin }}" style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;color:oklch(0.46 0.08 55);padding:8px 12px;border:1px solid oklch(0.46 0.08 55);border-radius:2px" style-hover="background:oklch(0.46 0.08 55);color:oklch(0.96 0.008 85)">Admin</div>
+          </sc-if>
+          <div onClick="{{ goCompte }}" style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;color:oklch(0.23 0.012 60);padding:8px 12px;border:1px solid oklch(0.60 0.02 70);border-radius:2px" style-hover="border-color:oklch(0.23 0.012 60)">Mon compte</div>
+          <button onClick="{{ doLogout }}" style="background:transparent;border:1px solid oklch(0.60 0.02 70);color:oklch(0.50 0.02 60);padding:8px 12px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;border-radius:2px" style-hover="border-color:oklch(0.23 0.012 60);color:oklch(0.23 0.012 60)">Déconnexion</button>
+        </div>
+      </sc-if>
+      <div onClick="{{ goCart }}" style="position:relative;cursor:pointer;background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:1px solid oklch(0.22 0.012 60);border-radius:2px;padding:9px 16px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase" style-hover="background:oklch(0.46 0.08 55);border-color:oklch(0.46 0.08 55)">
+        Panier
+        <span style="position:absolute;top:-9px;right:-9px;background:oklch(0.46 0.08 30);color:oklch(0.97 0.008 85);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">{{ cartN }}</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main style="flex:1">
+
+<sc-if value="{{ pHome }}" hint-placeholder-val="{{ true }}">
+<div data-screen-label="Accueil">
+  <section style="max-width:1240px;margin:0 auto;padding:88px 32px 72px;display:grid;grid-template-columns:1.1fr 0.9fr;gap:64px;align-items:center">
+    <div>
+      <div style="font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.34em;text-transform:uppercase;color:oklch(0.46 0.08 30);margin-bottom:20px">— Saint-Bruno · Lac-Saint-Jean —</div>
+      <h1 style="font-family:'Oswald',sans-serif;font-weight:700;font-size:64px;line-height:1.02;text-transform:uppercase;letter-spacing:0.01em;margin:0 0 24px">Boutique<br>d'archerie,<br><span style="color:oklch(0.46 0.08 55)">chasse et pêche</span></h1>
+      <p style="font-size:18px;line-height:1.65;color:oklch(0.40 0.015 60);max-width:46ch;margin:0 0 36px">Vente et réparation d'articles de chasse, de pêche, d'arcs et d'arbalètes. Un atelier sur place, des conseils de gens qui chassent, et des produits faits au Québec.</p>
+      <div style="display:flex;gap:16px">
+        <button onClick="{{ goShop }}" style="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:none;padding:16px 32px;font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.46 0.08 55)">Voir la boutique</button>
+        <button onClick="{{ goAtelier }}" style="background:transparent;color:oklch(0.23 0.012 60);border:1px solid oklch(0.23 0.012 60);padding:16px 32px;font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;border-radius:2px" style-hover="border-color:oklch(0.46 0.08 55);color:oklch(0.46 0.08 55)">Atelier de réparation</button>
+      </div>
+      <div style="display:flex;gap:36px;margin-top:52px;border-top:1px solid oklch(0.84 0.018 80);padding-top:24px">
+        <div><div style="font-family:'Oswald',sans-serif;font-size:26px;font-weight:600;color:oklch(0.46 0.08 55)">25+</div><div style="font-size:13px;color:oklch(0.50 0.02 60)">ans d'expérience</div></div>
+        <div><div style="font-family:'Oswald',sans-serif;font-size:26px;font-weight:600;color:oklch(0.46 0.08 55)">48 h</div><div style="font-size:13px;color:oklch(0.50 0.02 60)">réparations courantes</div></div>
+        <div><div style="font-family:'Oswald',sans-serif;font-size:26px;font-weight:600;color:oklch(0.46 0.08 55)">100 %</div><div style="font-size:13px;color:oklch(0.50 0.02 60)">produits testés en forêt</div></div>
+      </div>
+    </div>
+    <div style="position:relative">
+      <div style="aspect-ratio:4/5;border:2px solid oklch(0.23 0.012 60);position:relative;overflow:hidden;background:oklch(0.90 0.012 85)">
+        <img src="uploads/arc1.jpg" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+        <sc-if value="{{ heroReady }}" hint-placeholder-val="{{ false }}"><div role="img" aria-label="Arc En Flèche en action" style="position:absolute;inset:0;background-image:url('{{ heroSrc }}');background-size:cover;background-position:center;transition:opacity .4s;opacity:{{ heroOp }}"></div></sc-if>
+        <button onClick="{{ heroPrev }}" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:oklch(0.965 0.008 85 / 0.9);border:1px solid oklch(0.23 0.012 60);color:oklch(0.23 0.012 60);width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:oklch(0.23 0.012 60);color:oklch(0.96 0.008 85)">‹</button>
+        <button onClick="{{ heroNext }}" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:oklch(0.965 0.008 85 / 0.9);border:1px solid oklch(0.23 0.012 60);color:oklch(0.23 0.012 60);width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center" style-hover="background:oklch(0.23 0.012 60);color:oklch(0.96 0.008 85)">›</button>
+        <div style="position:absolute;bottom:14px;left:0;right:0;display:flex;justify-content:center;gap:8px">
+          <sc-for list="{{ heroDots }}" as="dt" hint-placeholder-count="7">
+            <div onClick="{{ dt.go }}" style="width:9px;height:9px;border-radius:50%;cursor:pointer;border:1px solid oklch(0.96 0.008 85);background:{{ dt.bg }}"></div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="position:absolute;bottom:-28px;left:-28px;background:oklch(0.22 0.012 60);color:oklch(0.95 0.01 85);padding:22px 26px;max-width:270px;box-shadow:0 20px 50px oklch(0 0 0 / 0.25)">
+        <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.22em;text-transform:uppercase;color:oklch(0.75 0.08 70);margin-bottom:6px">Atelier sur place</div>
+        <div style="font-family:'Lora',serif;font-size:15px;line-height:1.5">Cordes d'arc, réglages d'arbalète et entretien de moulinets — pendant que vous magasinez.</div>
+      </div>
+    </div>
+  </section>
+
+  <section style="border-top:1px solid oklch(0.84 0.018 80);background:oklch(0.93 0.012 85)">
+    <div style="max-width:1240px;margin:0 auto;padding:72px 32px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:36px">
+        <h2 style="font-family:'Oswald',sans-serif;font-size:32px;text-transform:uppercase;letter-spacing:0.04em;margin:0">Nos départements</h2>
+        <div onClick="{{ goShop }}" style="font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.16em;text-transform:uppercase;color:oklch(0.46 0.08 55);cursor:pointer">Tout voir →</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+        <sc-for list="{{ catsHome }}" as="c" hint-placeholder-count="8">
+          <div onClick="{{ c.go }}" style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80);padding:24px;cursor:pointer;transition:border-color .2s" style-hover="border-color:oklch(0.23 0.012 60)">
+            <div style="font-family:'Oswald',sans-serif;font-size:17px;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px">{{ c.nom }}</div>
+            <div style="font-size:13px;color:oklch(0.50 0.02 60);line-height:1.5">{{ c.desc }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </section>
+
+  <section style="max-width:1240px;margin:0 auto;padding:72px 32px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:36px">
+      <div>
+        <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.3em;text-transform:uppercase;color:oklch(0.46 0.08 30);margin-bottom:8px">Faits au Québec à la main — Sam Hunting</div>
+        <h2 style="font-family:'Oswald',sans-serif;font-size:32px;text-transform:uppercase;letter-spacing:0.04em;margin:0">Meilleurs vendeurs</h2>
+      </div>
+      <div onClick="{{ goShop }}" style="font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.16em;text-transform:uppercase;color:oklch(0.46 0.08 55);cursor:pointer">Toute la boutique →</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px">
+      <sc-for list="{{ best }}" as="p" hint-placeholder-count="4">
+        <div style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80);display:flex;flex-direction:column;transition:transform .2s,border-color .2s" style-hover="transform:translateY(-4px);border-color:oklch(0.23 0.012 60)">
+          <div onClick="{{ p.open }}" style="aspect-ratio:1;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 12px, oklch(0.89 0.012 85) 12px, oklch(0.89 0.012 85) 24px);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;border-bottom:1px solid oklch(0.84 0.018 80)">
+            <span style="font-family:monospace;font-size:12px;color:oklch(0.55 0.02 60)">photo produit</span>
+            <sc-if value="{{ p.hasImg }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background-image:url('{{ p.img }}');background-size:cover;background-position:center"></div></sc-if>
+            <sc-if value="{{ p.hasTag }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:12px;left:12px;background:oklch(0.46 0.08 30);color:oklch(0.97 0.008 85);font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;padding:4px 10px">{{ p.tag }}</span></sc-if>
+          </div>
+          <div style="padding:18px;display:flex;flex-direction:column;gap:8px;flex:1">
+            <div onClick="{{ p.open }}" style="font-family:'Oswald',sans-serif;font-size:16px;letter-spacing:0.03em;cursor:pointer;line-height:1.3">{{ p.nom }}</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto">
+              <div style="font-family:'Oswald',sans-serif;font-size:18px;color:oklch(0.46 0.08 55)">{{ p.prixF }}</div>
+              <button onClick="{{ p.add }}" style="background:transparent;border:1px solid oklch(0.60 0.02 70);color:oklch(0.23 0.012 60);padding:7px 14px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer" style-hover="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border-color:oklch(0.22 0.012 60)">+ Panier</button>
+            </div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="background:oklch(0.22 0.012 60);color:oklch(0.95 0.01 85)">
+    <div style="max-width:1240px;margin:0 auto;padding:80px 32px;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center">
+      <div style="aspect-ratio:16/11;border:1px solid oklch(0.38 0.015 60);overflow:hidden"><img src="uploads/photo2 (1).jpg" alt="L'équipe Arc En Flèche au comptoir de la boutique" style="width:100%;height:100%;object-fit:cover;object-position:50% 30%"></div>
+      <div>
+        <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.3em;text-transform:uppercase;color:oklch(0.75 0.08 70);margin-bottom:14px">— L'atelier —</div>
+        <h2 style="font-family:'Oswald',sans-serif;font-size:40px;text-transform:uppercase;line-height:1.08;margin:0 0 20px">On répare ce que<br>les autres remplacent</h2>
+        <p style="font-size:17px;line-height:1.7;color:oklch(0.80 0.015 85);margin:0 0 16px">Changement de corde, réglage d'arc, empennage de flèches, entretien de moulinet, mise au point de carabine. Diagnostic gratuit, la plupart des travaux en 48 heures.</p>
+        <p style="font-family:'Lora',serif;font-style:italic;font-size:16px;color:oklch(0.72 0.05 70);margin:0 0 32px">« Apportez-le. Si ça se répare, on le répare. »</p>
+        <button onClick="{{ goAtelier }}" style="background:oklch(0.95 0.01 85);color:oklch(0.22 0.012 60);border:none;padding:16px 32px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.75 0.08 70)">Services et tarifs</button>
+      </div>
+    </div>
+  </section>
+
+  <section style="max-width:1240px;margin:0 auto;padding:72px 32px;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center">
+    <div>
+      <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.3em;text-transform:uppercase;color:oklch(0.46 0.08 30);margin-bottom:14px">— Visitez-nous —</div>
+      <h2 style="font-family:'Oswald',sans-serif;font-size:34px;text-transform:uppercase;line-height:1.1;margin:0 0 20px">Au cœur du<br>Lac-Saint-Jean</h2>
+      <p style="font-size:16px;line-height:1.7;color:oklch(0.40 0.015 60);margin:0 0 28px">413, rue St-Alphonse, Saint-Bruno. À dix minutes d'Alma, sur le chemin de vos territoires de chasse.</p>
+      <div style="display:flex;flex-direction:column;gap:10px;font-size:15px">
+        <div style="display:flex;gap:12px"><span style="color:oklch(0.46 0.08 55);font-family:'Oswald',sans-serif;letter-spacing:0.1em;text-transform:uppercase;font-size:13px;width:80px;flex-shrink:0">Tél.</span><a href="tel:+14183433301">418 343-3301</a></div>
+        <div style="display:flex;gap:12px"><span style="color:oklch(0.46 0.08 55);font-family:'Oswald',sans-serif;letter-spacing:0.1em;text-transform:uppercase;font-size:13px;width:80px;flex-shrink:0">Courriel</span><a href="mailto:info@arcenfleche.com">info@arcenfleche.com</a></div>
+        <div style="display:flex;gap:12px"><span style="color:oklch(0.46 0.08 55);font-family:'Oswald',sans-serif;letter-spacing:0.1em;text-transform:uppercase;font-size:13px;width:80px;flex-shrink:0">Facebook</span><a href="https://www.facebook.com/profile.php?id=100063644495251" target="_blank">Arc En Flèche</a></div>
+      </div>
+    </div>
+    <div style="aspect-ratio:16/10;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 14px, oklch(0.89 0.012 85) 14px, oklch(0.89 0.012 85) 28px);border:1px solid oklch(0.80 0.02 80);display:flex;align-items:center;justify-content:center"><span style="font-family:monospace;font-size:13px;color:oklch(0.55 0.02 60)">carte — 413 st-alphonse, saint-bruno</span></div>
+  </section>
+</div>
+</sc-if>
+
+<sc-if value="{{ pShop }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Boutique" style="max-width:1240px;margin:0 auto;padding:56px 32px 80px">
+  <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.24em;text-transform:uppercase;color:oklch(0.50 0.02 60);margin-bottom:10px"><span onClick="{{ goHome }}" style="cursor:pointer">Accueil</span> / Boutique</div>
+  <h1 style="font-family:'Oswald',sans-serif;font-size:44px;text-transform:uppercase;letter-spacing:0.03em;margin:0 0 8px">Boutique</h1>
+  <p style="color:oklch(0.50 0.02 60);font-size:15px;margin:0 0 32px">{{ nbProds }} produits — incluant la collection Sam Hunting, faite au Québec à la main.</p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:36px">
+    <sc-for list="{{ chips }}" as="c" hint-placeholder-count="6">
+      <div onClick="{{ c.go }}" style="padding:9px 18px;border:1px solid {{ c.bord }};background:{{ c.bg }};color:{{ c.col }};font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-radius:2px" style-hover="border-color:oklch(0.23 0.012 60)">{{ c.nom }}</div>
+    </sc-for>
+  </div>
+  <sc-if value="{{ hasSubs }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:-20px 0 36px;padding:14px 16px;background:oklch(0.93 0.012 85);border:1px solid oklch(0.84 0.018 80);align-items:center">
+      <span style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:oklch(0.50 0.02 60);margin-right:4px">Sous-catégories</span>
+      <sc-for list="{{ subChips }}" as="sc" hint-placeholder-count="5">
+        <div onClick="{{ sc.go }}" style="padding:6px 14px;border:1px solid {{ sc.bord }};background:{{ sc.bg }};color:{{ sc.col }};font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.08em;cursor:pointer;border-radius:999px" style-hover="border-color:oklch(0.23 0.012 60)">{{ sc.nom }}</div>
+      </sc-for>
+    </div>
+  </sc-if>
+  <sc-if value="{{ noProds }}" hint-placeholder-val="{{ false }}">
+    <div style="text-align:center;padding:56px 24px;border:1px dashed oklch(0.65 0.02 70);margin-bottom:22px">
+      <div style="font-family:'Oswald',sans-serif;font-size:18px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Inventaire en cours d'ajout</div>
+      <div style="color:oklch(0.50 0.02 60);font-size:14px">Cette sous-catégorie sera remplie bientôt — appelez-nous au 418 343-3301 pour la disponibilité.</div>
+    </div>
+  </sc-if>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px">
+    <sc-for list="{{ prods }}" as="p" hint-placeholder-count="6">
+      <div style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80);display:flex;flex-direction:column;transition:transform .2s,border-color .2s" style-hover="transform:translateY(-4px);border-color:oklch(0.23 0.012 60)">
+        <div onClick="{{ p.open }}" style="aspect-ratio:4/3;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 12px, oklch(0.89 0.012 85) 12px, oklch(0.89 0.012 85) 24px);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;border-bottom:1px solid oklch(0.84 0.018 80)">
+          <span style="font-family:monospace;font-size:12px;color:oklch(0.55 0.02 60)">photo produit</span>
+          <sc-if value="{{ p.hasImg }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background-image:url('{{ p.img }}');background-size:cover;background-position:center"></div></sc-if>
+          <sc-if value="{{ p.hasTag }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:12px;left:12px;background:oklch(0.46 0.08 30);color:oklch(0.97 0.008 85);font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;padding:4px 10px">{{ p.tag }}</span></sc-if>
+          <sc-if value="{{ p.rupture }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:12px;right:12px;background:oklch(0.35 0.012 60);color:oklch(0.92 0.01 85);font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;padding:4px 10px">Rupture</span></sc-if>
+        </div>
+        <div style="padding:18px;display:flex;flex-direction:column;gap:6px;flex:1">
+          <div style="font-family:'Oswald',sans-serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:oklch(0.55 0.06 60)">{{ p.src }}</div>
+          <div onClick="{{ p.open }}" style="font-family:'Oswald',sans-serif;font-size:16px;letter-spacing:0.03em;cursor:pointer;line-height:1.3">{{ p.nom }}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:8px">
+            <div style="font-family:'Oswald',sans-serif;font-size:18px;color:oklch(0.46 0.08 55)">{{ p.prixF }}</div>
+            <button onClick="{{ p.add }}" style="background:transparent;border:1px solid oklch(0.60 0.02 70);color:oklch(0.23 0.012 60);padding:7px 14px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer" style-hover="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border-color:oklch(0.22 0.012 60)">+ Panier</button>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ pProd }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Fiche produit" style="max-width:1240px;margin:0 auto;padding:56px 32px 80px">
+  <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.24em;text-transform:uppercase;color:oklch(0.50 0.02 60);margin-bottom:32px"><span onClick="{{ goHome }}" style="cursor:pointer">Accueil</span> / <span onClick="{{ goShop }}" style="cursor:pointer">Boutique</span> / {{ selCat }}</div>
+  <div style="display:grid;grid-template-columns:1.05fr 0.95fr;gap:56px;align-items:start">
+    <div>
+      <div style="aspect-ratio:1;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 14px, oklch(0.89 0.012 85) 14px, oklch(0.89 0.012 85) 28px);border:1px solid oklch(0.80 0.02 80);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+        <span style="font-family:monospace;font-size:13px;color:oklch(0.55 0.02 60)">photo produit — vue principale</span>
+        <sc-if value="{{ selHasImg }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background-image:url('{{ selImg }}');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:oklch(0.99 0.004 85)"></div></sc-if>
+      </div>
+      <sc-if value="{{ selHasImg }}" hint-placeholder-val="{{ false }}">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px">
+          <sc-for list="{{ selThumbs }}" as="t" hint-placeholder-count="4">
+            <div onClick="{{ t.pick }}" style="aspect-ratio:1;cursor:pointer;border:{{ t.bord }};background-image:url('{{ t.u }}');background-size:cover;background-position:center"></div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+    <div>
+      <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.22em;text-transform:uppercase;color:oklch(0.55 0.06 60);margin-bottom:10px">{{ selSrc }}</div>
+      <h1 style="font-family:'Oswald',sans-serif;font-size:36px;text-transform:uppercase;line-height:1.1;letter-spacing:0.02em;margin:0 0 14px">{{ selNom }}</h1>
+      <div style="font-family:'Oswald',sans-serif;font-size:30px;color:oklch(0.46 0.08 55);margin-bottom:20px">{{ selPrixF }}</div>
+      <p style="font-size:16px;line-height:1.7;color:oklch(0.40 0.015 60);margin:0 0 28px">{{ selDesc }}</p>
+      <div style="font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.16em;text-transform:uppercase;margin-bottom:12px">Couleur de paracorde — <span style="color:oklch(0.46 0.08 55)">{{ selColor }}</span></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px">
+        <sc-for list="{{ colorOpts }}" as="c" hint-placeholder-count="6">
+          <div onClick="{{ c.pick }}" style="padding:8px 16px;border:1px solid {{ c.bord }};background:{{ c.bg }};color:{{ c.col }};font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.08em;cursor:pointer;border-radius:2px" style-hover="border-color:oklch(0.23 0.012 60)">{{ c.nom }}</div>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:14px;align-items:stretch;margin-bottom:14px">
+        <div style="display:flex;border:1px solid oklch(0.60 0.02 70);border-radius:2px;background:oklch(0.99 0.004 85)">
+          <button onClick="{{ decQty }}" style="background:transparent;border:none;color:oklch(0.23 0.012 60);width:44px;font-size:18px;cursor:pointer">−</button>
+          <div style="width:48px;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-size:17px;border-left:1px solid oklch(0.80 0.02 80);border-right:1px solid oklch(0.80 0.02 80)">{{ qty }}</div>
+          <button onClick="{{ incQty }}" style="background:transparent;border:none;color:oklch(0.23 0.012 60);width:44px;font-size:18px;cursor:pointer">+</button>
+        </div>
+        <button onClick="{{ addSel }}" style="flex:1;background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:none;padding:15px 24px;font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.46 0.08 55)">{{ addLabel }}</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;border-top:1px solid oklch(0.84 0.018 80);padding-top:20px;margin-top:20px;font-size:14px;color:oklch(0.45 0.015 60)">
+        <div>{{ stockLabel }}</div>
+        <div>Retrait gratuit en boutique — 413, rue St-Alphonse, Saint-Bruno</div>
+        <div>Livraison gratuite à partir de 150 $</div>
+        <div>Personnalisation des couleurs sur commande (produits Sam Hunting)</div>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:72px">
+    <h2 style="font-family:'Oswald',sans-serif;font-size:26px;text-transform:uppercase;letter-spacing:0.04em;margin:0 0 24px">Vous aimerez aussi</h2>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:20px">
+      <sc-for list="{{ related }}" as="p" hint-placeholder-count="4">
+        <div onClick="{{ p.open }}" style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80);cursor:pointer;transition:border-color .2s" style-hover="border-color:oklch(0.23 0.012 60)">
+          <div style="aspect-ratio:4/3;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 12px, oklch(0.89 0.012 85) 12px, oklch(0.89 0.012 85) 24px);display:flex;align-items:center;justify-content:center;border-bottom:1px solid oklch(0.84 0.018 80);position:relative;overflow:hidden">
+            <span style="font-family:monospace;font-size:12px;color:oklch(0.55 0.02 60)">photo</span>
+            <sc-if value="{{ p.hasImg }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background-image:url('{{ p.img }}');background-size:cover;background-position:center"></div></sc-if>
+          </div>
+          <div style="padding:14px 16px">
+            <div style="font-family:'Oswald',sans-serif;font-size:15px;line-height:1.3;margin-bottom:6px">{{ p.nom }}</div>
+            <div style="font-family:'Oswald',sans-serif;font-size:16px;color:oklch(0.46 0.08 55)">{{ p.prixF }}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ pAtelier }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Atelier">
+  <section style="background:oklch(0.22 0.012 60);color:oklch(0.95 0.01 85)">
+    <div style="max-width:1240px;margin:0 auto;padding:72px 32px">
+      <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.3em;text-transform:uppercase;color:oklch(0.75 0.08 70);margin-bottom:14px">— Atelier de réparation —</div>
+      <h1 style="font-family:'Oswald',sans-serif;font-size:52px;text-transform:uppercase;line-height:1.05;margin:0 0 18px;max-width:16ch">Diagnostic gratuit, travail garanti</h1>
+      <p style="font-size:18px;line-height:1.7;color:oklch(0.80 0.015 85);max-width:60ch;margin:0">Arcs, arbalètes, moulinets, carabines. Vous l'apportez au comptoir, on l'évalue devant vous, et la plupart des travaux courants sortent en 48 heures.</p>
+    </div>
+  </section>
+  <section style="max-width:1240px;margin:0 auto;padding:64px 32px">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+      <sc-for list="{{ services }}" as="s" hint-placeholder-count="6">
+        <div style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80);padding:26px;display:flex;flex-direction:column;gap:10px" style-hover="border-color:oklch(0.23 0.012 60)">
+          <div style="font-family:'Oswald',sans-serif;font-size:18px;text-transform:uppercase;letter-spacing:0.04em;line-height:1.25">{{ s.nom }}</div>
+          <div style="font-size:14px;line-height:1.6;color:oklch(0.45 0.015 60);flex:1">{{ s.desc }}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid oklch(0.84 0.018 80);padding-top:14px">
+            <div style="font-family:'Oswald',sans-serif;font-size:16px;color:oklch(0.46 0.08 55)">{{ s.prix }}</div>
+            <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.50 0.02 60)">{{ s.delai }}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+  <section style="max-width:1240px;margin:0 auto;padding:8px 32px 72px">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;border-top:1px solid oklch(0.84 0.018 80);padding-top:48px">
+      <div><div style="font-family:'Oswald',sans-serif;font-size:44px;color:oklch(0.46 0.08 55);line-height:1">1</div><div style="font-family:'Oswald',sans-serif;font-size:17px;text-transform:uppercase;letter-spacing:0.06em;margin:10px 0 6px">Apportez-le</div><div style="font-size:14px;color:oklch(0.45 0.015 60);line-height:1.6">Pas de rendez-vous nécessaire pour l'évaluation. Passez au comptoir avec votre équipement.</div></div>
+      <div><div style="font-family:'Oswald',sans-serif;font-size:44px;color:oklch(0.46 0.08 55);line-height:1">2</div><div style="font-family:'Oswald',sans-serif;font-size:17px;text-transform:uppercase;letter-spacing:0.06em;margin:10px 0 6px">On diagnostique</div><div style="font-size:14px;color:oklch(0.45 0.015 60);line-height:1.6">Évaluation gratuite devant vous, prix ferme avant de commencer. Aucune surprise.</div></div>
+      <div><div style="font-family:'Oswald',sans-serif;font-size:44px;color:oklch(0.46 0.08 55);line-height:1">3</div><div style="font-family:'Oswald',sans-serif;font-size:17px;text-transform:uppercase;letter-spacing:0.06em;margin:10px 0 6px">Vous repartez prêt</div><div style="font-size:14px;color:oklch(0.45 0.015 60);line-height:1.6">Test en allée de tir avant la remise. Travaux courants en 48 h, on vous appelle quand c'est prêt.</div></div>
+    </div>
+    <div style="margin-top:56px;background:oklch(0.99 0.004 85);border:2px solid oklch(0.23 0.012 60);padding:36px;display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap">
+      <div>
+        <div style="font-family:'Oswald',sans-serif;font-size:24px;text-transform:uppercase;letter-spacing:0.04em">Une question sur une réparation?</div>
+        <div style="color:oklch(0.45 0.015 60);font-size:15px;margin-top:6px">Appelez-nous, on vous dit tout de suite si ça vaut la peine.</div>
+      </div>
+      <a href="tel:+14183433301" style="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);padding:16px 32px;font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;border-radius:2px" style-hover="background:oklch(0.46 0.08 55);color:oklch(0.97 0.008 85)">418 343-3301</a>
+    </div>
+  </section>
+</div>
+</sc-if>
+
+<sc-if value="{{ pAbout }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="À propos" style="max-width:1240px;margin:0 auto;padding:64px 32px 80px">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;margin-bottom:72px">
+    <div>
+      <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.3em;text-transform:uppercase;color:oklch(0.46 0.08 30);margin-bottom:14px">— À propos —</div>
+      <h1 style="font-family:'Oswald',sans-serif;font-size:46px;text-transform:uppercase;line-height:1.08;margin:0 0 20px">Une boutique de région, tenue par des passionnés</h1>
+      <p style="font-size:17px;line-height:1.75;color:oklch(0.40 0.015 60);margin:0 0 16px">Arc En Flèche, c'est le spécialiste de la chasse, de la pêche, des arcs et des arbalètes au Lac-Saint-Jean. On vend ce qu'on utilise nous-mêmes, et on répare ce qu'on vend.</p>
+      <p style="font-size:17px;line-height:1.75;color:oklch(0.40 0.015 60);margin:0">Derrière le comptoir : des chasseurs et des pêcheurs qui connaissent les territoires du coin, les saisons et la réglementation. Posez vos questions — c'est gratuit.</p>
+    </div>
+    <div style="aspect-ratio:4/5;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 14px, oklch(0.89 0.012 85) 14px, oklch(0.89 0.012 85) 28px);border:1px solid oklch(0.80 0.02 80);display:flex;align-items:center;justify-content:center"><span style="font-family:monospace;font-size:13px;color:oklch(0.55 0.02 60)">photo — l'équipe en boutique</span></div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:72px">
+    <div style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80);padding:28px"><div style="font-family:'Oswald',sans-serif;font-size:18px;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;color:oklch(0.46 0.08 55)">Le bon conseil</div><div style="font-size:14px;line-height:1.65;color:oklch(0.42 0.015 60)">On vous vend l'équipement qui convient à votre pratique et à votre budget — pas le plus cher sur la tablette.</div></div>
+    <div style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80);padding:28px"><div style="font-family:'Oswald',sans-serif;font-size:18px;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;color:oklch(0.46 0.08 55)">Réparer d'abord</div><div style="font-size:14px;line-height:1.65;color:oklch(0.42 0.015 60)">Un équipement bien entretenu dure des décennies. Notre atelier est là pour ça, diagnostic gratuit.</div></div>
+    <div style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80);padding:28px"><div style="font-family:'Oswald',sans-serif;font-size:18px;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;color:oklch(0.46 0.08 55)">Acheter local</div><div style="font-size:14px;line-height:1.65;color:oklch(0.42 0.015 60)">On privilégie les fabricants d'ici, comme les produits Sam Hunting, tressés à la main au Québec.</div></div>
+  </div>
+  <div style="background:oklch(0.22 0.012 60);color:oklch(0.95 0.01 85);padding:48px;display:grid;grid-template-columns:1fr auto;gap:32px;align-items:center">
+    <div>
+      <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.28em;text-transform:uppercase;color:oklch(0.75 0.08 70);margin-bottom:10px">Fournisseur vedette</div>
+      <div style="font-family:'Oswald',sans-serif;font-size:28px;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:10px">Les produits Sam Hunting</div>
+      <div style="font-size:15px;line-height:1.7;color:oklch(0.80 0.015 85);max-width:64ch">Courroies, transporteurs et colliers en paracorde, faits au Québec à la main et personnalisés aux couleurs de votre choix. Une corde de survie, durable et ultra résistante.</div>
+    </div>
+    <button onClick="{{ goShop }}" style="background:oklch(0.95 0.01 85);color:oklch(0.22 0.012 60);border:none;padding:16px 32px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;border-radius:2px;white-space:nowrap" style-hover="background:oklch(0.75 0.08 70)">Voir la collection</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ pContact }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Contact" style="max-width:1240px;margin:0 auto;padding:64px 32px 80px">
+  <h1 style="font-family:'Oswald',sans-serif;font-size:44px;text-transform:uppercase;letter-spacing:0.03em;margin:0 0 40px">Contact</h1>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start">
+    <div>
+      <div style="display:flex;flex-direction:column;gap:14px;font-size:15px;margin-bottom:36px">
+        <div style="display:flex;gap:14px"><span style="color:oklch(0.46 0.08 55);font-family:'Oswald',sans-serif;letter-spacing:0.1em;text-transform:uppercase;font-size:13px;width:90px;flex-shrink:0;padding-top:2px">Adresse</span><span style="line-height:1.6">413, rue St-Alphonse<br>Saint-Bruno-Lac-Saint-Jean (Québec)<br>G0W 2L0</span></div>
+        <div style="display:flex;gap:14px"><span style="color:oklch(0.46 0.08 55);font-family:'Oswald',sans-serif;letter-spacing:0.1em;text-transform:uppercase;font-size:13px;width:90px;flex-shrink:0">Tél.</span><a href="tel:+14183433301">418 343-3301</a></div>
+        <div style="display:flex;gap:14px"><span style="color:oklch(0.46 0.08 55);font-family:'Oswald',sans-serif;letter-spacing:0.1em;text-transform:uppercase;font-size:13px;width:90px;flex-shrink:0">Courriel</span><a href="mailto:info@arcenfleche.com">info@arcenfleche.com</a></div>
+        <div style="display:flex;gap:14px"><span style="color:oklch(0.46 0.08 55);font-family:'Oswald',sans-serif;letter-spacing:0.1em;text-transform:uppercase;font-size:13px;width:90px;flex-shrink:0">Facebook</span><a href="https://www.facebook.com/profile.php?id=100063644495251" target="_blank">Arc En Flèche</a></div>
+      </div>
+      <div style="font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:0.16em;text-transform:uppercase;margin-bottom:14px;border-bottom:2px solid oklch(0.23 0.012 60);padding-bottom:10px">Heures d'ouverture</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:15px;margin-bottom:36px">
+        <sc-for list="{{ heures }}" as="h" hint-placeholder-count="4">
+          <div style="display:flex;justify-content:space-between;color:oklch(0.38 0.015 60)"><span>{{ h.jour }}</span><span style="font-family:'Oswald',sans-serif;letter-spacing:0.04em">{{ h.plage }}</span></div>
+        </sc-for>
+      </div>
+      <div style="aspect-ratio:16/9;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 14px, oklch(0.89 0.012 85) 14px, oklch(0.89 0.012 85) 28px);border:1px solid oklch(0.80 0.02 80);display:flex;align-items:center;justify-content:center"><span style="font-family:monospace;font-size:13px;color:oklch(0.55 0.02 60)">carte — google maps</span></div>
+    </div>
+    <div style="background:oklch(0.99 0.004 85);border:2px solid oklch(0.23 0.012 60);padding:36px">
+      <div style="font-family:'Oswald',sans-serif;font-size:22px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px">Écrivez-nous</div>
+      <div style="font-size:14px;color:oklch(0.45 0.015 60);margin-bottom:26px">Question sur un produit, une réparation ou une commande sur mesure — on répond rapidement.</div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <input placeholder="Nom" style="background:oklch(0.965 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
+          <input placeholder="Téléphone" style="background:oklch(0.965 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
+        </div>
+        <input placeholder="Courriel" style="background:oklch(0.965 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
+        <select style="background:oklch(0.965 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
+          <option>Question générale</option><option>Réparation / atelier</option><option>Commande sur mesure</option><option>Disponibilité d'un produit</option>
+        </select>
+        <textarea placeholder="Votre message" rows="6" style="background:oklch(0.965 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%;resize:vertical"></textarea>
+        <button style="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:none;padding:16px;font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.46 0.08 55)">Envoyer le message</button>
+      </div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ pCart }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Panier" style="max-width:1100px;margin:0 auto;padding:64px 32px 80px">
+  <h1 style="font-family:'Oswald',sans-serif;font-size:44px;text-transform:uppercase;letter-spacing:0.03em;margin:0 0 36px">Votre panier</h1>
+  <sc-if value="{{ cartEmpty }}" hint-placeholder-val="{{ false }}">
+    <div style="text-align:center;padding:72px 24px;border:1px dashed oklch(0.65 0.02 70)">
+      <div style="font-family:'Oswald',sans-serif;font-size:22px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">Votre panier est vide</div>
+      <div style="color:oklch(0.50 0.02 60);margin-bottom:28px">La saison approche — il est encore temps de vous équiper.</div>
+      <button onClick="{{ goShop }}" style="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:none;padding:15px 30px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.46 0.08 55)">Voir la boutique</button>
+    </div>
+  </sc-if>
+  <sc-if value="{{ cartFull }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:1.4fr 0.6fr;gap:40px;align-items:start">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <sc-for list="{{ cartRows }}" as="r" hint-placeholder-count="2">
+          <div style="display:flex;gap:18px;background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80);padding:16px;align-items:center">
+            <div style="width:84px;height:84px;flex-shrink:0;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 8px, oklch(0.89 0.012 85) 8px, oklch(0.89 0.012 85) 16px);border:1px solid oklch(0.84 0.018 80);position:relative;overflow:hidden">
+              <sc-if value="{{ r.hasImg }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background-image:url('{{ r.img }}');background-size:cover;background-position:center"></div></sc-if>
+            </div>
+            <div style="flex:1">
+              <div style="font-family:'Oswald',sans-serif;font-size:16px;line-height:1.3">{{ r.nom }}</div>
+              <div style="font-size:13px;color:oklch(0.50 0.02 60);margin-top:4px">{{ r.prixF }} l'unité</div>
+            </div>
+            <div style="display:flex;border:1px solid oklch(0.65 0.02 70);border-radius:2px">
+              <button onClick="{{ r.dec }}" style="background:transparent;border:none;color:oklch(0.23 0.012 60);width:34px;height:36px;cursor:pointer">−</button>
+              <div style="width:38px;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif">{{ r.qty }}</div>
+              <button onClick="{{ r.inc }}" style="background:transparent;border:none;color:oklch(0.23 0.012 60);width:34px;height:36px;cursor:pointer">+</button>
+            </div>
+            <div style="font-family:'Oswald',sans-serif;font-size:17px;color:oklch(0.46 0.08 55);width:90px;text-align:right">{{ r.totF }}</div>
+            <button onClick="{{ r.rem }}" style="background:transparent;border:none;color:oklch(0.55 0.02 60);font-size:18px;cursor:pointer;padding:6px" style-hover="color:oklch(0.46 0.08 30)">×</button>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:oklch(0.99 0.004 85);border:2px solid oklch(0.23 0.012 60);padding:28px;position:sticky;top:118px">
+        <div style="font-family:'Oswald',sans-serif;font-size:18px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:20px">Résumé</div>
+        <div style="display:flex;justify-content:space-between;font-size:15px;margin-bottom:10px;color:oklch(0.38 0.015 60)"><span>Sous-total</span><span style="font-family:'Oswald',sans-serif">{{ sousTotF }}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:15px;margin-bottom:18px;color:oklch(0.38 0.015 60)"><span>Livraison</span><span style="font-family:'Oswald',sans-serif">{{ livraisonF }}</span></div>
+        <div style="height:6px;background:oklch(0.88 0.012 85);border-radius:3px;overflow:hidden;margin-bottom:8px"><div style="height:100%;background:oklch(0.46 0.08 55);width:{{ progressPct }}"></div></div>
+        <div style="font-size:13px;color:oklch(0.50 0.02 60);margin-bottom:22px">{{ livraisonMsg }}</div>
+        <div style="display:flex;justify-content:space-between;border-top:1px solid oklch(0.84 0.018 80);padding-top:16px;margin-bottom:22px"><span style="font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:0.08em">Total</span><span style="font-family:'Oswald',sans-serif;font-size:22px;color:oklch(0.46 0.08 55)">{{ totalF }}</span></div>
+        <button style="width:100%;background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:none;padding:16px;font-family:'Oswald',sans-serif;font-size:15px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.46 0.08 55)">Passer la commande</button>
+        <div style="font-size:12px;color:oklch(0.55 0.02 60);text-align:center;margin-top:12px">Ou retrait gratuit en boutique à Saint-Bruno</div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+
+<sc-if value="{{ pAdmin }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Administration" style="max-width:1240px;margin:0 auto;padding:56px 32px 80px">
+  <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.24em;text-transform:uppercase;color:oklch(0.50 0.02 60);margin-bottom:10px"><span onClick="{{ goHome }}" style="cursor:pointer">Accueil</span> / Administration</div>
+  <h1 style="font-family:'Oswald',sans-serif;font-size:44px;text-transform:uppercase;letter-spacing:0.03em;margin:0 0 8px">Administration</h1>
+  <p style="color:oklch(0.50 0.02 60);font-size:15px;margin:0 0 32px">Gérez les catégories, sous-catégories et produits de la boutique.</p>
+  <sc-if value="{{ adminDenied }}" hint-placeholder-val="{{ false }}">
+    <div style="text-align:center;padding:56px 24px;border:1px dashed oklch(0.65 0.02 70)">
+      <div style="font-family:'Oswald',sans-serif;font-size:18px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Accès refusé</div>
+      <div style="color:oklch(0.50 0.02 60);font-size:14px">Vous devez être connecté en tant qu'administrateur.</div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ adminAccess }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;gap:0;margin-bottom:32px;border-bottom:2px solid oklch(0.23 0.012 60)">
+      <div onClick="{{ adminTabProducts }}" style="padding:14px 24px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid {{ adminTabProductsActive ? 'oklch(0.46 0.08 55)' : 'transparent' }};color:{{ adminTabProductsActive ? 'oklch(0.23 0.012 60)' : 'oklch(0.55 0.02 60)' }};margin-bottom:-2px">Produits</div>
+      <div onClick="{{ adminTabCats }}" style="padding:14px 24px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid {{ adminTabCatsActive ? 'oklch(0.46 0.08 55)' : 'transparent' }};color:{{ adminTabCatsActive ? 'oklch(0.23 0.012 60)' : 'oklch(0.55 0.02 60)' }};margin-bottom:-2px">Catégories</div>
+      <div onClick="{{ adminTabSubs }}" style="padding:14px 24px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid {{ adminTabSubsActive ? 'oklch(0.46 0.08 55)' : 'transparent' }};color:{{ adminTabSubsActive ? 'oklch(0.23 0.012 60)' : 'oklch(0.55 0.02 60)' }};margin-bottom:-2px">Sous-catégories</div>
+    </div>
+    <sc-if value="{{ adminShowProducts }}" hint-placeholder-val="{{ false }}">
+      <div style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80);padding:24px;margin-bottom:32px">
+        <div style="font-family:'Oswald',sans-serif;font-size:16px;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:16px">{{ adminFormTitle }}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <input value="{{ adminFormNom }}" onInput="{{ setAdminNom }}" placeholder="Nom du produit" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px;width:100%">
+          <input value="{{ adminFormPrix }}" onInput="{{ setAdminPrix }}" placeholder="Prix (ex: 49.99)" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px;width:100%">
+          <select onChange="{{ setAdminCat }}" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px;width:100%">
+            <option value="">— Catégorie —</option>
+            <sc-for list="{{ adminCatOptions }}" as="co">
+              <option value="{{ co.id }}">{{ co.nom }}</option>
+            </sc-for>
+          </select>
+          <select onChange="{{ setAdminSub }}" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px;width:100%">
+            <option value="">— Sous-catégorie —</option>
+            <sc-for list="{{ adminSubOptions }}" as="so">
+              <option value="{{ so.id }}">{{ so.nom }}</option>
+            </sc-for>
+          </select>
+          <input value="{{ adminFormTag }}" onInput="{{ setAdminTag }}" placeholder="Tag (ex: Meilleur vendeur)" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px;width:100%">
+          <input value="{{ adminFormSource }}" onInput="{{ setAdminSource }}" placeholder="Source (Sam Hunting ou Arc En Flèche)" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px;width:100%">
+        </div>
+        <textarea value="{{ adminFormDesc }}" onInput="{{ setAdminDesc }}" placeholder="Description du produit" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px;width:100%;min-height:80px;resize:vertical;margin-bottom:14px"></textarea>
+        <textarea value="{{ adminFormImages }}" onInput="{{ setAdminImages }}" placeholder="URLs d'images (une par ligne)" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:13px;border-radius:2px;width:100%;min-height:60px;resize:vertical;margin-bottom:14px"></textarea>
+        <div style="display:flex;gap:12px;align-items:center">
+          <select onChange="{{ setAdminStock }}" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:10px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px">
+            <option value="true" selected="{{ adminFormStock }}">En stock</option>
+            <option value="false" selected="{{ !adminFormStock }}">Rupture</option>
+          </select>
+          <button onClick="{{ adminSubmitProduct }}" style="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:none;padding:12px 24px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.46 0.08 55)">{{ adminSubmitLabel }}</button>
+          <sc-if value="{{ adminEditing }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ adminCancelEdit }}" style="background:transparent;border:1px solid oklch(0.60 0.02 70);color:oklch(0.50 0.02 60);padding:12px 20px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;border-radius:2px">Annuler</button>
+          </sc-if>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ adminProductRows }}" as="p">
+          <div style="display:flex;align-items:center;gap:16px;padding:14px 16px;background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80)">
+            <div style="flex:1">
+              <div style="font-family:'Oswald',sans-serif;font-size:15px">{{ p.nom }}</div>
+              <div style="font-size:12px;color:oklch(0.50 0.02 60)">{{ p.catNom }} · {{ p.subNom }} · <span style="color:{{ p.stockColor }}">{{ p.stockLabel }}</span></div>
+            </div>
+            <div style="font-family:'Oswald',sans-serif;font-size:16px;color:oklch(0.46 0.08 55)">{{ p.prixF }}</div>
+            <button onClick="{{ p.edit }}" style="background:transparent;border:1px solid oklch(0.60 0.02 70);color:oklch(0.23 0.012 60);padding:8px 14px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border-color:oklch(0.22 0.012 60)">Modifier</button>
+            <button onClick="{{ p.del }}" style="background:transparent;border:1px solid oklch(0.50 0.12 25);color:oklch(0.45 0.12 25);padding:8px 14px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.45 0.12 25);color:oklch(0.96 0.008 85)">Supprimer</button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ adminShowCats }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;gap:10px;margin-bottom:24px">
+        <input value="{{ adminNewCatVal }}" onInput="{{ setAdminNewCat }}" placeholder="Nouvelle catégorie" style="flex:1;background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px">
+        <button onClick="{{ adminAddCategory }}" style="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:none;padding:12px 24px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.46 0.08 55)">Ajouter</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ adminCatRows }}" as="c">
+          <div style="display:flex;align-items:center;gap:16px;padding:14px 16px;background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80)">
+            <div style="flex:1;font-family:'Oswald',sans-serif;font-size:15px">{{ c.nom }}</div>
+            <div style="font-size:13px;color:oklch(0.50 0.02 60)">{{ c.n }} produits</div>
+            <button onClick="{{ c.del }}" style="background:transparent;border:1px solid oklch(0.50 0.12 25);color:oklch(0.45 0.12 25);padding:8px 14px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.45 0.12 25);color:oklch(0.96 0.008 85)">Supprimer</button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ adminShowSubs }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;gap:10px;margin-bottom:24px">
+        <select onChange="{{ setAdminSubCat }}" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px">
+          <option value="">— Catégorie —</option>
+          <sc-for list="{{ adminCatOptions }}" as="co">
+            <option value="{{ co.id }}">{{ co.nom }}</option>
+          </sc-for>
+        </select>
+        <input value="{{ adminNewSubVal }}" onInput="{{ setAdminNewSub }}" placeholder="Nouvelle sous-catégorie" style="flex:1;background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px">
+        <button onClick="{{ adminAddSubcategory }}" style="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:none;padding:12px 24px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.46 0.08 55)">Ajouter</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ adminSubRows }}" as="s">
+          <div style="display:flex;align-items:center;gap:16px;padding:14px 16px;background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80)">
+            <div style="flex:1;font-family:'Oswald',sans-serif;font-size:15px">{{ s.nom }}</div>
+            <div style="font-size:13px;color:oklch(0.50 0.02 60)">{{ s.catNom }}</div>
+            <button onClick="{{ s.del }}" style="background:transparent;border:1px solid oklch(0.50 0.12 25);color:oklch(0.45 0.12 25);padding:8px 14px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.45 0.12 25);color:oklch(0.96 0.008 85)">Supprimer</button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ pCompte }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Mon compte" style="max-width:1240px;margin:0 auto;padding:56px 32px 80px">
+  <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.24em;text-transform:uppercase;color:oklch(0.50 0.02 60);margin-bottom:10px"><span onClick="{{ goHome }}" style="cursor:pointer">Accueil</span> / Mon compte</div>
+  <h1 style="font-family:'Oswald',sans-serif;font-size:44px;text-transform:uppercase;letter-spacing:0.03em;margin:0 0 8px">Mon compte</h1>
+  <p style="color:oklch(0.50 0.02 60);font-size:15px;margin:0 0 32px">{{ compteEmail }}</p>
+  <sc-if value="{{ compteDenied }}" hint-placeholder-val="{{ false }}">
+    <div style="text-align:center;padding:56px 24px;border:1px dashed oklch(0.65 0.02 70)">
+      <div style="font-family:'Oswald',sans-serif;font-size:18px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Connexion requise</div>
+      <div style="color:oklch(0.50 0.02 60);font-size:14px;margin-bottom:20px">Vous devez être connecté pour accéder à votre compte.</div>
+      <button onClick="{{ openAuth }}" style="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:none;padding:14px 28px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.46 0.08 55)">Se connecter</button>
+    </div>
+  </sc-if>
+  <sc-if value="{{ compteAccess }}" hint-placeholder-val="{{ false }}">
+    <div style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80);padding:28px;margin-bottom:32px">
+      <h2 style="font-family:'Oswald',sans-serif;font-size:22px;text-transform:uppercase;letter-spacing:0.04em;margin:0 0 20px">Profil</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+        <input value="{{ profileNameVal }}" onInput="{{ setProfileName }}" placeholder="Nom complet" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
+        <input value="{{ profilePhoneVal }}" onInput="{{ setProfilePhone }}" placeholder="Téléphone" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
+      </div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <button onClick="{{ saveProfile }}" style="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:none;padding:13px 24px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.46 0.08 55)">Enregistrer</button>
+        <sc-if value="{{ profileSaved }}" hint-placeholder-val="{{ false }}">
+          <span style="color:oklch(0.46 0.08 55);font-size:14px;font-family:'Oswald',sans-serif;letter-spacing:0.06em">Profil enregistré!</span>
+        </sc-if>
+      </div>
+    </div>
+    <div style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80);padding:28px;margin-bottom:32px">
+      <h2 style="font-family:'Oswald',sans-serif;font-size:22px;text-transform:uppercase;letter-spacing:0.04em;margin:0 0 20px">Mes commandes</h2>
+      <sc-if value="{{ hasOrders }}" hint-placeholder-val="{{ false }}">
+        <sc-for list="{{ userOrderRows }}" as="o">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid oklch(0.88 0.012 85)">
+            <span style="font-size:14px;color:oklch(0.40 0.015 60)">{{ o.date }}</span>
+            <span style="font-family:'Oswald',sans-serif;font-size:15px;color:oklch(0.46 0.08 55)">{{ o.totalF }}</span>
+            <span style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.50 0.02 60)">{{ o.statusLabel }}</span>
+          </div>
+        </sc-for>
+      </sc-if>
+      <sc-if value="{{ noOrders }}" hint-placeholder-val="{{ false }}">
+        <div style="color:oklch(0.50 0.02 60);font-size:14px;text-align:center;padding:20px">Aucune commande pour le moment.</div>
+      </sc-if>
+    </div>
+    <button onClick="{{ doLogout }}" style="background:transparent;border:1px solid oklch(0.50 0.12 25);color:oklch(0.45 0.12 25);padding:13px 28px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.45 0.12 25);color:oklch(0.96 0.008 85)">Déconnexion</button>
+  </sc-if>
+</div>
+</sc-if>
+
+</main>
+
+<footer style="border-top:2px solid oklch(0.23 0.012 60);background:oklch(0.22 0.012 60);color:oklch(0.90 0.012 85)">
+  <div style="max-width:1240px;margin:0 auto;padding:56px 32px 32px;display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:40px">
+    <div>
+      <img src="uploads/logo_arc_en_fleche.jpg" alt="Arc En Flèche" style="height:96px;filter:invert(1);mix-blend-mode:screen;margin-bottom:14px">
+      <div style="font-size:14px;line-height:1.7;color:oklch(0.72 0.015 80);max-width:34ch">Spécialiste en vente et réparation d'articles de chasse, de pêche, d'arcs et d'arbalètes.</div>
+    </div>
+    <div>
+      <div style="font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.2em;text-transform:uppercase;color:oklch(0.75 0.08 70);margin-bottom:14px">Boutique</div>
+      <div style="display:flex;flex-direction:column;gap:9px;font-size:14px">
+        <div onClick="{{ goShop }}" style="color:oklch(0.80 0.015 85);cursor:pointer" style-hover="color:oklch(0.75 0.08 70)">Tous les produits</div>
+        <div onClick="{{ goAtelier }}" style="color:oklch(0.80 0.015 85);cursor:pointer" style-hover="color:oklch(0.75 0.08 70)">Atelier de réparation</div>
+        <div onClick="{{ goAbout }}" style="color:oklch(0.80 0.015 85);cursor:pointer" style-hover="color:oklch(0.75 0.08 70)">À propos</div>
+        <div onClick="{{ goContact }}" style="color:oklch(0.80 0.015 85);cursor:pointer" style-hover="color:oklch(0.75 0.08 70)">Contact</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.2em;text-transform:uppercase;color:oklch(0.75 0.08 70);margin-bottom:14px">Coordonnées</div>
+      <div style="display:flex;flex-direction:column;gap:9px;font-size:14px;color:oklch(0.80 0.015 85);line-height:1.6">
+        <div>413, rue St-Alphonse<br>Saint-Bruno-Lac-St-Jean (QC)<br>G0W 2L0</div>
+        <a href="tel:+14183433301" style="color:oklch(0.90 0.012 85)">418 343-3301</a>
+        <a href="mailto:info@arcenfleche.com" style="color:oklch(0.90 0.012 85)">info@arcenfleche.com</a>
+        <a href="https://www.facebook.com/profile.php?id=100063644495251" target="_blank" title="Suivez-nous sur Facebook" style="width:36px;height:36px;border:1px solid oklch(0.55 0.02 70);border-radius:50%;display:flex;align-items:center;justify-content:center;color:oklch(0.90 0.012 85);font-family:'Oswald',sans-serif;font-weight:700;font-size:17px;line-height:1;margin-top:4px" style-hover="background:oklch(0.90 0.012 85);color:oklch(0.22 0.012 60);border-color:oklch(0.90 0.012 85)">f</a>
+      </div>
+    </div>
+    <div>
+      <div style="font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.2em;text-transform:uppercase;color:oklch(0.75 0.08 70);margin-bottom:14px">Heures</div>
+      <div style="display:flex;flex-direction:column;gap:9px;font-size:14px;color:oklch(0.80 0.015 85)">
+        <sc-for list="{{ heures }}" as="h" hint-placeholder-count="4">
+          <div style="display:flex;justify-content:space-between;gap:12px"><span>{{ h.jour }}</span><span>{{ h.plage }}</span></div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+  <div style="max-width:1240px;margin:0 auto;padding:20px 32px;border-top:1px solid oklch(0.32 0.012 60);display:flex;justify-content:space-between;font-size:13px;color:oklch(0.62 0.015 80)">
+    <span>© 2026 Arc En Flèche. Tous droits réservés.</span>
+    <span>Précision · Passion · Tradition</span>
+    <span>Propulsé par <a href="https://reactool.ai" target="_blank" style="color:oklch(0.75 0.08 70)">Reactool.AI</a></span>
+  </div>
+</footer>
+
+<sc-if value="{{ authOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeAuth }}" style="position:fixed;inset:0;background:oklch(0.15 0.01 60 / 0.55);z-index:100;display:flex;align-items:center;justify-content:center;padding:24px">
+  <div onClick="{{ stopClick }}" style="background:oklch(0.965 0.008 85);border:2px solid oklch(0.23 0.012 60);max-width:440px;width:100%;padding:36px;position:relative">
+    <button onClick="{{ closeAuth }}" style="position:absolute;top:12px;right:14px;background:transparent;border:none;font-size:22px;cursor:pointer;color:oklch(0.45 0.015 60)" style-hover="color:oklch(0.23 0.012 60)">×</button>
+    <img src="uploads/logo_arc_en_fleche.jpg" alt="Arc En Flèche" style="height:72px;mix-blend-mode:multiply;display:block;margin:0 auto 18px">
+    <div style="display:flex;border:1px solid oklch(0.23 0.012 60);border-radius:2px;overflow:hidden;margin-bottom:24px">
+      <div onClick="{{ authModeLogin }}" style="flex:1;text-align:center;padding:10px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;background:{{ tabLoginBg }};color:{{ tabLoginCol }}">Connexion</div>
+      <div onClick="{{ authModeSignup }}" style="flex:1;text-align:center;padding:10px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;background:{{ tabSignupBg }};color:{{ tabSignupCol }};border-left:1px solid oklch(0.23 0.012 60)">Créer un compte</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <sc-if value="{{ authSignup }}" hint-placeholder-val="{{ false }}">
+        <input value="{{ authName }}" onInput="{{ setAuthName }}" placeholder="Nom complet" style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
+      </sc-if>
+      <input value="{{ authEmail }}" onInput="{{ setAuthEmail }}" placeholder="Courriel" style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
+      <input value="{{ authPassword }}" onInput="{{ setAuthPassword }}" placeholder="Mot de passe" type="password" style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
+      <sc-if value="{{ authError }}" hint-placeholder-val="{{ false }}">
+        <div style="color:oklch(0.45 0.12 25);font-size:13px;padding:8px 12px;background:oklch(0.92 0.04 25);border:1px solid oklch(0.65 0.12 25);border-radius:2px">{{ authError }}</div>
+      </sc-if>
+      <button onClick="{{ doAuth }}" style="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:none;padding:15px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.46 0.08 55)">{{ authBtnLabel }}</button>
+      <sc-if value="{{ authLogin }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center;font-size:13px;color:oklch(0.50 0.02 60)"><a href="#" style="color:oklch(0.46 0.08 55)">Mot de passe oublié?</a></div>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ newsOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeNews }}" style="position:fixed;inset:0;background:oklch(0.15 0.01 60 / 0.55);z-index:100;display:flex;align-items:center;justify-content:center;padding:24px">
+  <div onClick="{{ stopClick }}" style="background:oklch(0.965 0.008 85);border:2px solid oklch(0.23 0.012 60);max-width:460px;width:100%;padding:36px;position:relative;text-align:center">
+    <button onClick="{{ closeNews }}" style="position:absolute;top:12px;right:14px;background:transparent;border:none;font-size:22px;cursor:pointer;color:oklch(0.45 0.015 60)" style-hover="color:oklch(0.23 0.012 60)">×</button>
+    <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.28em;text-transform:uppercase;color:oklch(0.46 0.08 30);margin-bottom:10px">— Infolettre —</div>
+    <div style="font-family:'Oswald',sans-serif;font-size:26px;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px">Restez à l'affût</div>
+    <div style="font-size:15px;line-height:1.6;color:oklch(0.45 0.015 60);margin-bottom:24px">Nouveautés, promotions et dates d'ouverture des saisons — une fois par mois, pas plus.</div>
+    <sc-if value="{{ newsSent }}" hint-placeholder-val="{{ false }}">
+      <div style="font-family:'Oswald',sans-serif;font-size:16px;letter-spacing:0.08em;text-transform:uppercase;color:oklch(0.46 0.08 55);padding:14px;border:1px dashed oklch(0.46 0.08 55)">Merci! Vous êtes inscrit.</div>
+    </sc-if>
+    <sc-if value="{{ newsForm }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;gap:10px">
+        <input placeholder="Votre courriel" style="flex:1;background:oklch(0.99 0.004 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;min-width:0">
+        <button onClick="{{ sendNews }}" style="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:none;padding:13px 22px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.46 0.08 55)">S'inscrire</button>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;pageInitiale&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;accueil&quot;,&quot;options&quot;:[&quot;accueil&quot;,&quot;boutique&quot;,&quot;produit&quot;,&quot;atelier&quot;,&quot;apropos&quot;,&quot;contact&quot;,&quot;panier&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Navigation&quot;},&quot;bandeauPromo&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Affichage&quot;},&quot;panierDemo&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Affichage&quot;}}">
+class Component extends DCLogic {
+  state = {
+    page: "accueil", cat: "tous", selId: null, qty: 1, color: "Noir", cart: {}, added: false, data: null, hero: 0, heroOp: 1,
+    authOpen: false, authMode: "login", authEmail: "", authPassword: "", authName: "", authError: "", authLoading: false,
+    user: null, profile: null, isAdmin: false,
+    adminTab: "products", adminProducts: [], adminCats: [], adminSubs: [], adminForm: {}, adminEditId: null,
+    adminNewCat: "", adminNewSub: "", adminSubCatId: "",
+    profileName: "", profilePhone: "", profileSaved: false, userOrders: [],
+  };
+  HERO = ["uploads/arc1.jpg", "uploads/arc2.jpg", "uploads/arc3.jpg", "uploads/photo_related.jpg", "uploads/img3.jpg", "uploads/img4.jpg", "uploads/img7.jpg"];
+  heroGo(i) {
+    const n = this.HERO.length;
+    this.setState({ heroOp: 0 });
+    clearTimeout(this._fade);
+    this._fade = setTimeout(() => this.setState({ hero: ((i % n) + n) % n, heroOp: 1 }), 220);
+    clearInterval(this._timer);
+    this._timer = setInterval(() => { if (this.state.page === "accueil") this.heroGo(this.state.hero + 1); }, 5000);
+  }
+  componentWillUnmount() { clearInterval(this._timer); clearTimeout(this._fade); }
+  async componentDidMount() {
+    requestAnimationFrame(() => this.setState({ heroReady: true }));
+    this._timer = setInterval(() => { if (this.state.page === "accueil") this.heroGo(this.state.hero + 1); }, 5000);
+    try {
+      const staticData = await import(new URL("./data.js", document.baseURI).href);
+      const { supabase } = await import(new URL("./supabase-client.js", document.baseURI).href);
+      this.supabase = supabase;
+      await this.loadCatalog();
+      this.setState({ data: { ...staticData, CATS: this.state.dbCats, PRODUITS: this.state.dbProds } });
+      if (this.props.panierDemo) this.setState({ cart: { 1: 1, 2: 2 } });
+      if (this.props.pageInitiale) this.setState({ page: this.props.pageInitiale });
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) await this.handleSession(session);
+      supabase.auth.onAuthStateChange((event, session) => {
+        (async () => {
+          if (session) await this.handleSession(session);
+          else this.setState({ user: null, profile: null, isAdmin: false });
+        })();
+      });
+    } catch (err) {
+      console.error("Init error:", err);
+    }
+  }
+  async loadCatalog() {
+    const sb = this.supabase;
+    const [{ data: cats }, { data: subs }, { data: prods }] = await Promise.all([
+      sb.from("categories").select("*").order("sort_order"),
+      sb.from("subcategories").select("*").order("sort_order"),
+      sb.from("products").select("*").order("created_at", { ascending: false }),
+    ]);
+    const CATS = (cats || []).map((c) => ({
+      id: String(c.id), nom: c.nom, desc: c.description || "",
+      n: (prods || []).filter((p) => p.category_id === c.id).length,
+      subs: (subs || []).filter((s) => s.category_id === c.id).map((s) => ({ id: String(s.id), nom: s.nom })),
+    }));
+    const PRODUITS = (prods || []).map((p) => ({
+      id: p.id, nom: p.nom, cat: String(p.category_id), sub: String(p.subcategory_id || ""),
+      prix: parseFloat(p.prix), tag: p.tag, src: p.source, desc: p.description, stock: p.stock, imgs: p.images || [],
+    }));
+    this.setState({ dbCats: CATS, dbProds: PRODUITS, adminProducts: prods || [], adminCats: cats || [], adminSubs: subs || [] });
+  }
+  updateData() {
+    const d = this.state.data;
+    if (!d || !this.state.dbCats) return;
+    this.setState({ data: { ...d, CATS: this.state.dbCats, PRODUITS: this.state.dbProds } });
+  }
+  async handleSession(session) {
+    const user = session.user;
+    const { data: profile } = await this.supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+    this.setState({ user, profile, isAdmin: profile?.is_admin || false, profileName: profile?.full_name || "", profilePhone: profile?.phone || "" });
+    const { data: orders } = await this.supabase.from("orders").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+    this.setState({ userOrders: orders || [] });
+  }
+  async doAuth() {
+    const { authMode, authEmail, authPassword, authName } = this.state;
+    if (!authEmail || !authPassword) { this.setState({ authError: "Veuillez entrer votre courriel et mot de passe." }); return; }
+    this.setState({ authLoading: true, authError: "" });
+    try {
+      if (authMode === "signup") {
+        if (!authName) { this.setState({ authError: "Veuillez entrer votre nom complet.", authLoading: false }); return; }
+        const { error } = await this.supabase.auth.signUp({ email: authEmail, password: authPassword, options: { data: { full_name: authName } } });
+        if (error) throw error;
+      } else {
+        const { error } = await this.supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
+        if (error) throw error;
+      }
+      this.setState({ authOpen: false, authLoading: false, authError: "", authEmail: "", authPassword: "", authName: "" });
+    } catch (err) {
+      this.setState({ authError: err.message || "Erreur de connexion", authLoading: false });
+    }
+  }
+  async doLogout() { await this.supabase.auth.signOut(); this.setState({ user: null, profile: null, isAdmin: false, page: "accueil" }); }
+  async saveProfile() {
+    const { user, profileName, profilePhone } = this.state;
+    const { error } = await this.supabase.from("profiles").update({ full_name: profileName, phone: profilePhone }).eq("id", user.id);
+    if (!error) { this.setState({ profileSaved: true }); setTimeout(() => this.setState({ profileSaved: false }), 3000); }
+  }
+  async adminAddProduct() {
+    const f = this.state.adminForm;
+    if (!f.nom || !f.prix || !f.category_id) return;
+    const { error } = await this.supabase.rpc("admin_create_product", {
+      p_subcategory_id: f.subcategory_id ? parseInt(f.subcategory_id) : null,
+      p_category_id: parseInt(f.category_id), p_nom: f.nom, p_description: f.description || "",
+      p_prix: parseFloat(f.prix), p_source: f.source || "Arc En Flèche", p_tag: f.tag || null,
+      p_stock: f.stock !== false, p_images: f.images ? f.images.split("\n").filter((s) => s.trim()) : [],
+    });
+    if (!error) { this.setState({ adminForm: {} }); await this.loadCatalog(); this.updateData(); }
+  }
+  async adminUpdateProduct(id) {
+    const f = this.state.adminForm;
+    const { error } = await this.supabase.rpc("admin_update_product", {
+      p_id: id, p_subcategory_id: f.subcategory_id ? parseInt(f.subcategory_id) : null,
+      p_category_id: parseInt(f.category_id), p_nom: f.nom, p_description: f.description || "",
+      p_prix: parseFloat(f.prix), p_source: f.source || "Arc En Flèche", p_tag: f.tag || null,
+      p_stock: f.stock !== false, p_images: f.images ? f.images.split("\n").filter((s) => s.trim()) : [],
+    });
+    if (!error) { this.setState({ adminEditId: null, adminForm: {} }); await this.loadCatalog(); this.updateData(); }
+  }
+  async adminDeleteProduct(id) {
+    const { error } = await this.supabase.rpc("admin_delete_product", { p_id: id });
+    if (!error) { await this.loadCatalog(); this.updateData(); }
+  }
+  async adminAddCategory() {
+    const { adminNewCat } = this.state;
+    if (!adminNewCat) return;
+    const { error } = await this.supabase.rpc("admin_create_category", { p_nom: adminNewCat, p_description: "", p_sort_order: 0 });
+    if (!error) { this.setState({ adminNewCat: "" }); await this.loadCatalog(); this.updateData(); }
+  }
+  async adminDeleteCategory(id) {
+    const { error } = await this.supabase.rpc("admin_delete_category", { p_id: id });
+    if (!error) { await this.loadCatalog(); this.updateData(); }
+  }
+  async adminAddSubcategory() {
+    const { adminNewSub, adminSubCatId } = this.state;
+    if (!adminNewSub || !adminSubCatId) return;
+    const { error } = await this.supabase.rpc("admin_create_subcategory", { p_category_id: parseInt(adminSubCatId), p_nom: adminNewSub, p_sort_order: 0 });
+    if (!error) { this.setState({ adminNewSub: "", adminSubCatId: "" }); await this.loadCatalog(); this.updateData(); }
+  }
+  async adminDeleteSubcategory(id) {
+    const { error } = await this.supabase.rpc("admin_delete_subcategory", { p_id: id });
+    if (!error) { await this.loadCatalog(); this.updateData(); }
+  }
+  go(page, extra) { this.setState({ page, added: false, ...extra }); window.scrollTo(0, 0); }
+  addCart(id, n) {
+    this.setState((s) => ({ cart: { ...s.cart, [id]: (s.cart[id] || 0) + (n || 1) } }));
+  }
+  fmt(v) { return (Number(v) || 0).toFixed(2).replace(".", ",") + " $"; }
+  renderVals() {
+    const d = this.state.data;
+    const P = d ? d.PRODUITS : [];
+    const s = this.state;
+    const page = s.page;
+    const BRUN = "oklch(0.46 0.08 55)", INK = "oklch(0.23 0.012 60)", PAPIER = "oklch(0.96 0.008 85)";
+    const go = (p, e) => () => this.go(p, e);
+    const decorate = (p) => ({
+      ...p, prixF: this.fmt(p.prix), hasTag: !!p.tag, rupture: !p.stock,
+      hasImg: !!(p.imgs && p.imgs.length), img: (p.imgs || [])[0] || "",
+      open: () => this.go("produit", { selId: p.id, qty: 1, color: "Noir", galIdx: 0 }),
+      add: () => this.addCart(p.id, 1),
+    });
+    const noop = () => {};
+    const nav = [
+      ["Accueil", "accueil"], ["Boutique", "boutique"], ["Atelier", "atelier"], ["À propos", "apropos"], ["Contact", "contact"], ["Infolettre", "infolettre"],
+    ].map(([label, key]) => {
+      const on = page === key || (key === "boutique" && page === "produit");
+      const isShop = key === "boutique";
+      return {
+        label,
+        go: key === "infolettre" ? () => this.setState({ newsOpen: true, newsSent: false }) : go(key),
+        col: on ? BRUN : INK, bord: on ? BRUN : "transparent",
+        menu: isShop && !!s.menuOpen,
+        enter: isShop ? () => this.setState({ menuOpen: true }) : noop,
+        leave: isShop ? () => this.setState({ menuOpen: false }) : noop,
+      };
+    });
+    const cats = d ? d.CATS : [];
+    const chips = [{ id: "tous", nom: "Tous" }, ...cats].map((c) => {
+      const on = s.cat === c.id;
+      return { nom: c.nom, go: () => this.setState({ cat: c.id, sub: "tous" }),
+        bord: on ? INK : "oklch(0.65 0.02 70)",
+        bg: on ? INK : "transparent",
+        col: on ? PAPIER : INK };
+    });
+    const curCat = cats.find((c) => c.id === s.cat);
+    const sub = s.sub || "tous";
+    const subChips = curCat && curCat.subs ? [{ id: "tous", nom: "Toutes" }, ...curCat.subs].map((sc) => {
+      const on = sub === sc.id;
+      return { nom: sc.nom, go: () => this.setState({ sub: sc.id }),
+        bord: on ? INK : "oklch(0.65 0.02 70)",
+        bg: on ? INK : "transparent",
+        col: on ? PAPIER : INK };
+    }) : [];
+    let prods = (s.cat === "tous" ? P : P.filter((p) => p.cat === s.cat));
+    if (s.cat !== "tous" && sub !== "tous") prods = prods.filter((p) => p.sub === sub);
+    prods = prods.map(decorate);
+    const best = P.filter((p) => p.tag === "Meilleur vendeur" || p.id === 5).slice(0, 4).map(decorate);
+    const sel = P.find((p) => p.id === s.selId) || P[0] || { nom: "", prix: 0, desc: "", cat: "", src: "", stock: true };
+    const catNom = (cats.find((c) => c.id === sel.cat) || {}).nom || "";
+    const colorOpts = (d ? d.COULEURS : []).map((c) => {
+      const on = s.color === c;
+      return { nom: c, pick: () => this.setState({ color: c }),
+        bord: on ? INK : "oklch(0.65 0.02 70)",
+        bg: on ? INK : "transparent",
+        col: on ? PAPIER : INK };
+    });
+    const related = P.filter((p) => p.cat === sel.cat && p.id !== sel.id).slice(0, 4).map(decorate);
+    const ids = Object.keys(s.cart);
+    const cartRows = ids.map((id) => {
+      const p = P.find((x) => x.id === +id) || { nom: "", prix: 0 };
+      const q = s.cart[id];
+      return { nom: p.nom, qty: q, prixF: this.fmt(p.prix), totF: this.fmt(p.prix * q),
+        hasImg: !!(p.imgs && p.imgs.length), img: (p.imgs || [])[0] || "",
+        inc: () => this.addCart(+id, 1),
+        dec: () => this.setState((st) => {
+          const c = { ...st.cart };
+          if (c[id] > 1) c[id]--; else delete c[id];
+          return { cart: c };
+        }),
+        rem: () => this.setState((st) => { const c = { ...st.cart }; delete c[id]; return { cart: c }; }),
+      };
+    });
+    const sousTot = ids.reduce((t, id) => { const p = P.find((x) => x.id === +id); return t + (p ? p.prix * s.cart[id] : 0); }, 0);
+    const SEUIL = 150;
+    const gratuit = sousTot >= SEUIL;
+    const livraison = ids.length === 0 ? 0 : (gratuit ? 0 : 12.95);
+    const cartN = ids.reduce((t, id) => t + s.cart[id], 0);
+    const heures = (d ? d.INFOS.heures : []).map(([jour, plage]) => ({ jour, plage }));
+    return {
+      promoVisible: this.props.bandeauPromo ?? true,
+      heroReady: !!s.heroReady, heroSrc: this.HERO[s.hero] || "uploads/arc1.jpg", heroOp: s.heroOp,
+      heroPrev: () => this.heroGo(s.hero - 1),
+      heroNext: () => this.heroGo(s.hero + 1),
+      heroDots: this.HERO.map((_, i) => ({
+        go: () => this.heroGo(i),
+        bg: i === s.hero ? "oklch(0.96 0.008 85)" : "transparent",
+      })),
+      navItems: nav, cartN,
+      goHome: go("accueil"), goShop: go("boutique"), goAtelier: go("atelier"), goAbout: go("apropos"), goContact: go("contact"), goCart: go("panier"),
+      pHome: page === "accueil", pShop: page === "boutique", pProd: page === "produit",
+      pAtelier: page === "atelier", pAbout: page === "apropos", pContact: page === "contact", pCart: page === "panier",
+      catsHome: cats.map((c) => ({ ...c, go: () => this.go("boutique", { cat: c.id, sub: "tous" }) })),
+      menuCats: cats.map((c) => ({ nom: c.nom, n: c.n, go: () => { this.setState({ menuOpen: false }); this.go("boutique", { cat: c.id, sub: "tous" }); } })),
+      goShopAll: () => { this.setState({ menuOpen: false }); this.go("boutique", { cat: "tous", sub: "tous" }); },
+      newsOpen: !!s.newsOpen, newsSent: !!s.newsSent, newsForm: !s.newsSent,
+      closeNews: () => this.setState({ newsOpen: false }),
+      sendNews: () => this.setState({ newsSent: true }),
+      best, chips, prods, nbProds: prods.length,
+      hasSubs: subChips.length > 0, subChips, noProds: prods.length === 0,
+      selNom: sel.nom, selPrixF: this.fmt(sel.prix), selDesc: sel.desc, selSrc: sel.src, selCat: catNom,
+      selHasImg: !!(sel.imgs && sel.imgs.length),
+      selImg: (sel.imgs || [])[s.galIdx || 0] || (sel.imgs || [])[0] || "",
+      selThumbs: (sel.imgs || []).map((u, i) => ({
+        u, pick: () => this.setState({ galIdx: i }),
+        bord: i === (s.galIdx || 0) ? "2px solid oklch(0.23 0.012 60)" : "1px solid oklch(0.80 0.02 80)",
+      })),
+      selColor: s.color, colorOpts, qty: s.qty,
+      incQty: () => this.setState((st) => ({ qty: st.qty + 1 })),
+      decQty: () => this.setState((st) => ({ qty: Math.max(1, st.qty - 1) })),
+      addSel: () => { this.addCart(sel.id, s.qty); this.setState({ added: true }); },
+      addLabel: s.added ? "Ajouté — voir le panier" : "Ajouter au panier",
+      stockLabel: sel.stock ? "En stock — expédié en 24 h" : "Rupture de stock — appelez-nous pour réserver",
+      related,
+      services: d ? d.SERVICES : [],
+      heures,
+      cartEmpty: ids.length === 0, cartFull: ids.length > 0, cartRows,
+      sousTotF: this.fmt(sousTot),
+      livraisonF: gratuit || ids.length === 0 ? "Gratuite" : this.fmt(livraison),
+      totalF: this.fmt(sousTot + livraison),
+      progressPct: Math.min(100, Math.round((sousTot / SEUIL) * 100)) + "%",
+      livraisonMsg: gratuit ? "Livraison gratuite atteinte" : "Plus que " + this.fmt(SEUIL - sousTot) + " pour la livraison gratuite",
+      authOpen: !!s.authOpen, authLogin: s.authMode !== "signup", authSignup: s.authMode === "signup",
+      openAuth: () => this.setState({ authOpen: true, authMode: "login" }),
+      closeAuth: () => this.setState({ authOpen: false }),
+      stopClick: (e) => e.stopPropagation(),
+      authModeLogin: () => this.setState({ authMode: "login" }),
+      authModeSignup: () => this.setState({ authMode: "signup" }),
+      authBtnLabel: s.authMode === "signup" ? "Créer mon compte" : "Se connecter",
+      tabLoginBg: s.authMode !== "signup" ? "oklch(0.22 0.012 60)" : "transparent",
+      tabLoginCol: s.authMode !== "signup" ? "oklch(0.96 0.008 85)" : "oklch(0.23 0.012 60)",
+      tabSignupBg: s.authMode === "signup" ? "oklch(0.22 0.012 60)" : "transparent",
+      tabSignupCol: s.authMode === "signup" ? "oklch(0.96 0.008 85)" : "oklch(0.23 0.012 60)",
+      isLoggedIn: !!s.user, notLoggedIn: !s.user, userIsAdmin: s.isAdmin,
+      userName: (s.profile && s.profile.full_name) || (s.user && s.user.email) || "",
+      compteEmail: (s.user && s.user.email) || "",
+      doLogout: () => this.doLogout(), goCompte: () => this.go("compte"), goAdmin: () => this.go("admin"),
+      setAuthEmail: (e) => this.setState({ authEmail: e.target.value }),
+      setAuthPassword: (e) => this.setState({ authPassword: e.target.value }),
+      setAuthName: (e) => this.setState({ authName: e.target.value }),
+      doAuth: () => this.doAuth(), authError: s.authError, authLoading: s.authLoading,
+      pAdmin: page === "admin", adminAccess: s.isAdmin, adminDenied: page === "admin" && !s.isAdmin,
+      pCompte: page === "compte", compteAccess: !!s.user, compteDenied: page === "compte" && !s.user,
+      adminShowProducts: s.isAdmin && s.adminTab === "products",
+      adminShowCats: s.isAdmin && s.adminTab === "categories",
+      adminShowSubs: s.isAdmin && s.adminTab === "subcategories",
+      adminTabProducts: () => this.setState({ adminTab: "products" }),
+      adminTabCats: () => this.setState({ adminTab: "categories" }),
+      adminTabSubs: () => this.setState({ adminTab: "subcategories" }),
+      adminTabProductsActive: s.adminTab === "products",
+      adminTabCatsActive: s.adminTab === "categories",
+      adminTabSubsActive: s.adminTab === "subcategories",
+      adminProductRows: (s.adminProducts || []).map((p) => {
+        const cat = (s.adminCats || []).find((c) => c.id === p.category_id);
+        const sub = (s.adminSubs || []).find((x) => x.id === p.subcategory_id);
+        return {
+          nom: p.nom, prixF: this.fmt(p.prix), catNom: (cat && cat.nom) || "", subNom: (sub && sub.nom) || "",
+          stockLabel: p.stock ? "En stock" : "Rupture", stockColor: p.stock ? "oklch(0.46 0.08 55)" : "oklch(0.50 0.02 60)",
+          edit: () => this.setState({ adminEditId: p.id, adminForm: { nom: p.nom, prix: String(p.prix), category_id: String(p.category_id), subcategory_id: String(p.subcategory_id || ""), description: p.description || "", tag: p.tag || "", source: p.source || "", stock: p.stock, images: (p.images || []).join("\n") } }),
+          del: () => this.adminDeleteProduct(p.id),
+        };
+      }),
+      adminCatRows: (s.adminCats || []).map((c) => ({
+        nom: c.nom, n: (s.adminProducts || []).filter((p) => p.category_id === c.id).length,
+        del: () => this.adminDeleteCategory(c.id),
+      })),
+      adminSubRows: (s.adminSubs || []).map((sub) => {
+        const cat = (s.adminCats || []).find((c) => c.id === sub.category_id);
+        return { nom: sub.nom, catNom: (cat && cat.nom) || "", del: () => this.adminDeleteSubcategory(sub.id) };
+      }),
+      adminCatOptions: (s.adminCats || []).map((c) => ({ id: c.id, nom: c.nom })),
+      adminSubOptions: (s.adminSubs || []).filter((sub) => !s.adminForm.category_id || sub.category_id === parseInt(s.adminForm.category_id)).map((sub) => ({ id: sub.id, nom: sub.nom })),
+      adminFormNom: s.adminForm.nom || "", adminFormPrix: s.adminForm.prix || "", adminFormDesc: s.adminForm.description || "",
+      adminFormTag: s.adminForm.tag || "", adminFormSource: s.adminForm.source || "", adminFormImages: s.adminForm.images || "",
+      adminFormCatId: s.adminForm.category_id || "", adminFormSubId: s.adminForm.subcategory_id || "",
+      adminFormStock: s.adminForm.stock !== false, adminEditing: !!s.adminEditId,
+      adminFormTitle: s.adminEditId ? "Modifier le produit" : "Ajouter un produit",
+      adminSubmitLabel: s.adminEditId ? "Enregistrer" : "Ajouter",
+      setAdminNom: (e) => this.setState((st) => ({ adminForm: { ...st.adminForm, nom: e.target.value } })),
+      setAdminPrix: (e) => this.setState((st) => ({ adminForm: { ...st.adminForm, prix: e.target.value } })),
+      setAdminCat: (e) => this.setState((st) => ({ adminForm: { ...st.adminForm, category_id: e.target.value } })),
+      setAdminSub: (e) => this.setState((st) => ({ adminForm: { ...st.adminForm, subcategory_id: e.target.value } })),
+      setAdminDesc: (e) => this.setState((st) => ({ adminForm: { ...st.adminForm, description: e.target.value } })),
+      setAdminTag: (e) => this.setState((st) => ({ adminForm: { ...st.adminForm, tag: e.target.value } })),
+      setAdminSource: (e) => this.setState((st) => ({ adminForm: { ...st.adminForm, source: e.target.value } })),
+      setAdminImages: (e) => this.setState((st) => ({ adminForm: { ...st.adminForm, images: e.target.value } })),
+      setAdminStock: (e) => this.setState((st) => ({ adminForm: { ...st.adminForm, stock: e.target.value === "true" } })),
+      adminSubmitProduct: () => s.adminEditId ? this.adminUpdateProduct(s.adminEditId) : this.adminAddProduct(),
+      adminCancelEdit: () => this.setState({ adminEditId: null, adminForm: {} }),
+      adminNewCatVal: s.adminNewCat, setAdminNewCat: (e) => this.setState({ adminNewCat: e.target.value }),
+      adminAddCategory: () => this.adminAddCategory(),
+      adminNewSubVal: s.adminNewSub, setAdminNewSub: (e) => this.setState({ adminNewSub: e.target.value }),
+      setAdminSubCat: (e) => this.setState({ adminSubCatId: e.target.value }), adminSubCatIdVal: s.adminSubCatId,
+      adminAddSubcategory: () => this.adminAddSubcategory(),
+      profileNameVal: s.profileName, profilePhoneVal: s.profilePhone,
+      setProfileName: (e) => this.setState({ profileName: e.target.value }),
+      setProfilePhone: (e) => this.setState({ profilePhone: e.target.value }),
+      saveProfile: () => this.saveProfile(), profileSaved: s.profileSaved,
+      userOrderRows: (s.userOrders || []).map((o) => ({
+        date: new Date(o.created_at).toLocaleDateString("fr-CA"),
+        totalF: this.fmt(o.total),
+        statusLabel: o.status === "pending" ? "En attente" : o.status === "completed" ? "Complétée" : o.status,
+      })),
+      hasOrders: (s.userOrders || []).length > 0, noOrders: (s.userOrders || []).length === 0,
+    };
+  }
+}
+</script>
+</body>
+</html>
