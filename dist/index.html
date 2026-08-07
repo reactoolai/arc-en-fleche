@@ -227,7 +227,6 @@ a:hover{color:oklch(0.46 0.08 30);}
 
 <sc-if value="{{ pHome }}" hint-placeholder-val="{{ true }}">
 <div data-screen-label="Accueil">
-  <div style="width:100%;overflow:hidden;border-bottom:2px solid oklch(0.23 0.012 60)"><img src="1d-banniere-web-1920x800.png" alt="Arc En Flèche — bannière" style="width:100%;height:auto;display:block;max-height:420px;object-fit:cover;object-position:center"></div>
   <section class="r-hero r-section" style="max-width:1240px;margin:0 auto;padding:88px 32px 72px;display:grid;grid-template-columns:1.1fr 0.9fr;gap:64px;align-items:center">
     <div>
       <div style="font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.34em;text-transform:uppercase;color:oklch(0.46 0.08 30);margin-bottom:20px">— Saint-Bruno · Lac-Saint-Jean —</div>
@@ -941,15 +940,14 @@ class Component extends DCLogic {
     this._timer = setInterval(() => { if (this.state.page === "accueil") this.heroGo(this.state.hero + 1); }, 5000);
     try {
       const staticData = await import(new URL("./data.js", document.baseURI).href);
-      const { supabase } = await import(new URL("./supabase-client.js", document.baseURI).href);
-      this.supabase = supabase;
+      const sb = await this.ensureSupabase();
       await this.loadCatalog();
       this.setState({ data: { ...staticData, CATS: this.state.dbCats, PRODUITS: this.state.dbProds } });
       if (this.props.panierDemo) this.setState({ cart: { 1: 1, 2: 2 } });
       if (this.props.pageInitiale) this.setState({ page: this.props.pageInitiale });
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await sb.auth.getSession();
       if (session) await this.handleSession(session);
-      supabase.auth.onAuthStateChange((event, session) => {
+      sb.auth.onAuthStateChange((event, session) => {
         (async () => {
           if (session) await this.handleSession(session);
           else this.setState({ user: null, profile: null, isAdmin: false });
@@ -960,7 +958,7 @@ class Component extends DCLogic {
     }
   }
   async loadCatalog() {
-    const sb = this.supabase;
+    const sb = await this.ensureSupabase();
     const [{ data: cats }, { data: subs }, { data: prods }] = await Promise.all([
       sb.from("categories").select("*").order("sort_order"),
       sb.from("subcategories").select("*").order("sort_order"),
@@ -984,22 +982,30 @@ class Component extends DCLogic {
   }
   async handleSession(session) {
     const user = session.user;
-    const { data: profile } = await this.supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+    const sb = await this.ensureSupabase();
+    const { data: profile } = await sb.from("profiles").select("*").eq("id", user.id).maybeSingle();
     this.setState({ user, profile, isAdmin: profile?.is_admin || false, profileName: profile?.full_name || "", profilePhone: profile?.phone || "" });
-    const { data: orders } = await this.supabase.from("orders").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+    const { data: orders } = await sb.from("orders").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
     this.setState({ userOrders: orders || [] });
+  }
+  async ensureSupabase() {
+    if (this.supabase) return this.supabase;
+    const { supabase } = await import(new URL("./supabase-client.js", document.baseURI).href);
+    this.supabase = supabase;
+    return supabase;
   }
   async doAuth() {
     const { authMode, authEmail, authPassword, authName } = this.state;
     if (!authEmail || !authPassword) { this.setState({ authError: "Veuillez entrer votre courriel et mot de passe." }); return; }
     this.setState({ authLoading: true, authError: "" });
     try {
+      const sb = await this.ensureSupabase();
       if (authMode === "signup") {
         if (!authName) { this.setState({ authError: "Veuillez entrer votre nom complet.", authLoading: false }); return; }
-        const { error } = await this.supabase.auth.signUp({ email: authEmail, password: authPassword, options: { data: { full_name: authName } } });
+        const { error } = await sb.auth.signUp({ email: authEmail, password: authPassword, options: { data: { full_name: authName } } });
         if (error) throw error;
       } else {
-        const { error } = await this.supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
+        const { error } = await sb.auth.signInWithPassword({ email: authEmail, password: authPassword });
         if (error) throw error;
       }
       this.setState({ authOpen: false, authLoading: false, authError: "", authEmail: "", authPassword: "", authName: "" });
@@ -1007,16 +1013,18 @@ class Component extends DCLogic {
       this.setState({ authError: err.message || "Erreur de connexion", authLoading: false });
     }
   }
-  async doLogout() { await this.supabase.auth.signOut(); this.setState({ user: null, profile: null, isAdmin: false, page: "accueil" }); }
+  async doLogout() { try { const sb = await this.ensureSupabase(); await sb.auth.signOut(); } catch {} this.setState({ user: null, profile: null, isAdmin: false, page: "accueil" }); }
   async saveProfile() {
     const { user, profileName, profilePhone } = this.state;
-    const { error } = await this.supabase.from("profiles").update({ full_name: profileName, phone: profilePhone }).eq("id", user.id);
+    const sb = await this.ensureSupabase();
+    const { error } = await sb.from("profiles").update({ full_name: profileName, phone: profilePhone }).eq("id", user.id);
     if (!error) { this.setState({ profileSaved: true }); setTimeout(() => this.setState({ profileSaved: false }), 3000); }
   }
   async adminAddProduct() {
     const f = this.state.adminForm;
     if (!f.nom || !f.prix || !f.category_id) return;
-    const { error } = await this.supabase.rpc("admin_create_product", {
+    const sb = await this.ensureSupabase();
+    const { error } = await sb.rpc("admin_create_product", {
       p_subcategory_id: f.subcategory_id ? parseInt(f.subcategory_id) : null,
       p_category_id: parseInt(f.category_id), p_nom: f.nom, p_description: f.description || "",
       p_prix: parseFloat(f.prix), p_source: f.source || "Arc En Flèche", p_tag: f.tag || null,
@@ -1026,7 +1034,8 @@ class Component extends DCLogic {
   }
   async adminUpdateProduct(id) {
     const f = this.state.adminForm;
-    const { error } = await this.supabase.rpc("admin_update_product", {
+    const sb = await this.ensureSupabase();
+    const { error } = await sb.rpc("admin_update_product", {
       p_id: id, p_subcategory_id: f.subcategory_id ? parseInt(f.subcategory_id) : null,
       p_category_id: parseInt(f.category_id), p_nom: f.nom, p_description: f.description || "",
       p_prix: parseFloat(f.prix), p_source: f.source || "Arc En Flèche", p_tag: f.tag || null,
@@ -1035,27 +1044,32 @@ class Component extends DCLogic {
     if (!error) { this.setState({ adminEditId: null, adminForm: {} }); await this.loadCatalog(); this.updateData(); }
   }
   async adminDeleteProduct(id) {
-    const { error } = await this.supabase.rpc("admin_delete_product", { p_id: id });
+    const sb = await this.ensureSupabase();
+    const { error } = await sb.rpc("admin_delete_product", { p_id: id });
     if (!error) { await this.loadCatalog(); this.updateData(); }
   }
   async adminAddCategory() {
     const { adminNewCat } = this.state;
     if (!adminNewCat) return;
-    const { error } = await this.supabase.rpc("admin_create_category", { p_nom: adminNewCat, p_description: "", p_sort_order: 0 });
+    const sb = await this.ensureSupabase();
+    const { error } = await sb.rpc("admin_create_category", { p_nom: adminNewCat, p_description: "", p_sort_order: 0 });
     if (!error) { this.setState({ adminNewCat: "" }); await this.loadCatalog(); this.updateData(); }
   }
   async adminDeleteCategory(id) {
-    const { error } = await this.supabase.rpc("admin_delete_category", { p_id: id });
+    const sb = await this.ensureSupabase();
+    const { error } = await sb.rpc("admin_delete_category", { p_id: id });
     if (!error) { await this.loadCatalog(); this.updateData(); }
   }
   async adminAddSubcategory() {
     const { adminNewSub, adminSubCatId } = this.state;
     if (!adminNewSub || !adminSubCatId) return;
-    const { error } = await this.supabase.rpc("admin_create_subcategory", { p_category_id: parseInt(adminSubCatId), p_nom: adminNewSub, p_sort_order: 0 });
+    const sb = await this.ensureSupabase();
+    const { error } = await sb.rpc("admin_create_subcategory", { p_category_id: parseInt(adminSubCatId), p_nom: adminNewSub, p_sort_order: 0 });
     if (!error) { this.setState({ adminNewSub: "", adminSubCatId: "" }); await this.loadCatalog(); this.updateData(); }
   }
   async adminDeleteSubcategory(id) {
-    const { error } = await this.supabase.rpc("admin_delete_subcategory", { p_id: id });
+    const sb = await this.ensureSupabase();
+    const { error } = await sb.rpc("admin_delete_subcategory", { p_id: id });
     if (!error) { await this.loadCatalog(); this.updateData(); }
   }
   go(page, extra) { this.setState({ page, added: false, mobileMenuOpen: false, ...extra }); window.scrollTo(0, 0); }
