@@ -153,6 +153,14 @@ a:hover{color:oklch(0.46 0.08 30);}
               </div>
             </div>
           </sc-if>
+          <sc-if value="{{ it.aboutMenu }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;top:100%;left:50%;transform:translateX(-50%);padding-top:10px;z-index:60">
+              <div style="background:oklch(0.965 0.008 85);border:2px solid oklch(0.23 0.012 60);min-width:220px;box-shadow:0 16px 40px oklch(0 0 0 / 0.18)">
+                <div onClick="{{ goAbout }}" style="padding:11px 18px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-bottom:1px solid oklch(0.88 0.012 85)" style-hover="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85)">Notre histoire</div>
+                <div onClick="{{ goAlbum }}" style="padding:11px 18px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer" style-hover="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85)">Album photo</div>
+              </div>
+            </div>
+          </sc-if>
         </div>
       </sc-for>
     </nav>
@@ -187,7 +195,7 @@ a:hover{color:oklch(0.46 0.08 30);}
   <div role="button" onClick="{{ goShop }}">Boutique</div>
   <div role="button" onClick="{{ goAtelier }}">Atelier</div>
   <div role="button" onClick="{{ goAbout }}">À propos</div>
-  <div role="button" onClick="{{ goAlbum }}">Album photo</div>
+  <div role="button" onClick="{{ goAlbum }}" style="padding-left:24px;font-size:14px;color:oklch(0.50 0.02 60)">↳ Album photo</div>
   <div role="button" onClick="{{ goContact }}">Contact</div>
   <div role="button" onClick="{{ goCart }}">Panier ({{ cartCount }})</div>
   <sc-if value="{{ isLoggedIn }}" hint-placeholder-val="{{ false }}">
@@ -1033,17 +1041,20 @@ class Component extends DCLogic {
     });
     const noop = () => {};
     const nav = [
-      ["Accueil", "accueil"], ["Boutique", "boutique"], ["Atelier", "atelier"], ["À propos", "apropos"], ["Album", "album"], ["Contact", "contact"], ["Infolettre", "infolettre"],
+      ["Accueil", "accueil"], ["Boutique", "boutique"], ["Atelier", "atelier"], ["À propos", "apropos"], ["Contact", "contact"], ["Infolettre", "infolettre"],
     ].map(([label, key]) => {
       const on = page === key || (key === "boutique" && page === "produit");
       const isShop = key === "boutique";
+      const isAbout = key === "apropos";
       return {
         label,
         go: key === "infolettre" ? () => this.setState({ newsOpen: true, newsSent: false }) : go(key),
         col: on ? BRUN : INK, bord: on ? BRUN : "transparent",
         menu: isShop && !!s.menuOpen,
-        enter: isShop ? () => this.setState({ menuOpen: true }) : noop,
-        leave: isShop ? () => this.setState({ menuOpen: false }) : noop,
+        isShop, isAbout,
+        aboutMenu: isAbout && !!s.aboutMenuOpen,
+        enter: isShop ? () => this.setState({ menuOpen: true }) : isAbout ? () => this.setState({ aboutMenuOpen: true }) : noop,
+        leave: isShop ? () => this.setState({ menuOpen: false }) : isAbout ? () => this.setState({ aboutMenuOpen: false }) : noop,
       };
     });
     const cats = d ? d.CATS : [];
