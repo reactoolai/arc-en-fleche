@@ -69,6 +69,13 @@ const rawHtmlPlugin = () => ({
         });
       }
     }
+    // Copy support.js and data.js so the runtime and static data resolve in production builds
+    for (const f of ["support.js", "data.js"]) {
+      const p = join(process.cwd(), f);
+      if (existsSync(p)) {
+        this.emitFile({ type: "asset", fileName: f, source: readFileSync(p) });
+      }
+    }
   },
 });
 
