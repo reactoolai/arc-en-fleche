@@ -53,9 +53,20 @@ a:hover{color:oklch(0.46 0.08 30);}
     </nav>
     <div style="display:flex;align-items:center;gap:16px;flex-shrink:0">
       <a href="tel:+14183433301" style="font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.08em;color:oklch(0.23 0.012 60)">418 343-3301</a>
-      <div onClick="{{ openAuth }}" title="Connexion / Créer un compte" style="width:38px;height:38px;border:1px solid oklch(0.23 0.012 60);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:oklch(0.23 0.012 60)" style-hover="background:oklch(0.23 0.012 60);color:oklch(0.96 0.008 85)">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="6" r="3.2"></circle><path d="M2.5 16 C2.5 12.5 5.4 10.8 9 10.8 C12.6 10.8 15.5 12.5 15.5 16"></path></svg>
-      </div>
+      <sc-if value="{{ notLoggedIn }}" hint-placeholder-val="{{ true }}">
+        <div onClick="{{ openAuth }}" title="Connexion / Créer un compte" style="width:38px;height:38px;border:1px solid oklch(0.23 0.012 60);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:oklch(0.23 0.012 60)" style-hover="background:oklch(0.23 0.012 60);color:oklch(0.96 0.008 85)">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="6" r="3.2"></circle><path d="M2.5 16 C2.5 12.5 5.4 10.8 9 10.8 C12.6 10.8 15.5 12.5 15.5 16"></path></svg>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isLoggedIn }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:10px">
+          <sc-if value="{{ userIsAdmin }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ goAdmin }}" style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;color:oklch(0.46 0.08 55);padding:8px 12px;border:1px solid oklch(0.46 0.08 55);border-radius:2px" style-hover="background:oklch(0.46 0.08 55);color:oklch(0.96 0.008 85)">Admin</div>
+          </sc-if>
+          <div onClick="{{ goCompte }}" style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;color:oklch(0.23 0.012 60);padding:8px 12px;border:1px solid oklch(0.60 0.02 70);border-radius:2px" style-hover="border-color:oklch(0.23 0.012 60)">Mon compte</div>
+          <button onClick="{{ doLogout }}" style="background:transparent;border:1px solid oklch(0.60 0.02 70);color:oklch(0.50 0.02 60);padding:8px 12px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;border-radius:2px" style-hover="border-color:oklch(0.23 0.012 60);color:oklch(0.23 0.012 60)">Déconnexion</button>
+        </div>
+      </sc-if>
       <div onClick="{{ goCart }}" style="position:relative;cursor:pointer;background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:1px solid oklch(0.22 0.012 60);border-radius:2px;padding:9px 16px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase" style-hover="background:oklch(0.46 0.08 55);border-color:oklch(0.46 0.08 55)">
         Panier
         <span style="position:absolute;top:-9px;right:-9px;background:oklch(0.46 0.08 30);color:oklch(0.97 0.008 85);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">{{ cartN }}</span>
@@ -440,6 +451,158 @@ a:hover{color:oklch(0.46 0.08 30);}
 </div>
 </sc-if>
 
+
+<sc-if value="{{ pAdmin }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Administration" style="max-width:1240px;margin:0 auto;padding:56px 32px 80px">
+  <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.24em;text-transform:uppercase;color:oklch(0.50 0.02 60);margin-bottom:10px"><span onClick="{{ goHome }}" style="cursor:pointer">Accueil</span> / Administration</div>
+  <h1 style="font-family:'Oswald',sans-serif;font-size:44px;text-transform:uppercase;letter-spacing:0.03em;margin:0 0 8px">Administration</h1>
+  <p style="color:oklch(0.50 0.02 60);font-size:15px;margin:0 0 32px">Gérez les catégories, sous-catégories et produits de la boutique.</p>
+  <sc-if value="{{ adminDenied }}" hint-placeholder-val="{{ false }}">
+    <div style="text-align:center;padding:56px 24px;border:1px dashed oklch(0.65 0.02 70)">
+      <div style="font-family:'Oswald',sans-serif;font-size:18px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Accès refusé</div>
+      <div style="color:oklch(0.50 0.02 60);font-size:14px">Vous devez être connecté en tant qu'administrateur.</div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ adminAccess }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;gap:0;margin-bottom:32px;border-bottom:2px solid oklch(0.23 0.012 60)">
+      <div onClick="{{ adminTabProducts }}" style="padding:14px 24px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid {{ adminTabProductsActive ? 'oklch(0.46 0.08 55)' : 'transparent' }};color:{{ adminTabProductsActive ? 'oklch(0.23 0.012 60)' : 'oklch(0.55 0.02 60)' }};margin-bottom:-2px">Produits</div>
+      <div onClick="{{ adminTabCats }}" style="padding:14px 24px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid {{ adminTabCatsActive ? 'oklch(0.46 0.08 55)' : 'transparent' }};color:{{ adminTabCatsActive ? 'oklch(0.23 0.012 60)' : 'oklch(0.55 0.02 60)' }};margin-bottom:-2px">Catégories</div>
+      <div onClick="{{ adminTabSubs }}" style="padding:14px 24px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;border-bottom:2px solid {{ adminTabSubsActive ? 'oklch(0.46 0.08 55)' : 'transparent' }};color:{{ adminTabSubsActive ? 'oklch(0.23 0.012 60)' : 'oklch(0.55 0.02 60)' }};margin-bottom:-2px">Sous-catégories</div>
+    </div>
+    <sc-if value="{{ adminShowProducts }}" hint-placeholder-val="{{ false }}">
+      <div style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80);padding:24px;margin-bottom:32px">
+        <div style="font-family:'Oswald',sans-serif;font-size:16px;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:16px">{{ adminFormTitle }}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <input value="{{ adminFormNom }}" onInput="{{ setAdminNom }}" placeholder="Nom du produit" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px;width:100%">
+          <input value="{{ adminFormPrix }}" onInput="{{ setAdminPrix }}" placeholder="Prix (ex: 49.99)" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px;width:100%">
+          <select onChange="{{ setAdminCat }}" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px;width:100%">
+            <option value="">— Catégorie —</option>
+            <sc-for list="{{ adminCatOptions }}" as="co">
+              <option value="{{ co.id }}">{{ co.nom }}</option>
+            </sc-for>
+          </select>
+          <select onChange="{{ setAdminSub }}" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px;width:100%">
+            <option value="">— Sous-catégorie —</option>
+            <sc-for list="{{ adminSubOptions }}" as="so">
+              <option value="{{ so.id }}">{{ so.nom }}</option>
+            </sc-for>
+          </select>
+          <input value="{{ adminFormTag }}" onInput="{{ setAdminTag }}" placeholder="Tag (ex: Meilleur vendeur)" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px;width:100%">
+          <input value="{{ adminFormSource }}" onInput="{{ setAdminSource }}" placeholder="Source (Sam Hunting ou Arc En Flèche)" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px;width:100%">
+        </div>
+        <textarea value="{{ adminFormDesc }}" onInput="{{ setAdminDesc }}" placeholder="Description du produit" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px;width:100%;min-height:80px;resize:vertical;margin-bottom:14px"></textarea>
+        <textarea value="{{ adminFormImages }}" onInput="{{ setAdminImages }}" placeholder="URLs d'images (une par ligne)" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:13px;border-radius:2px;width:100%;min-height:60px;resize:vertical;margin-bottom:14px"></textarea>
+        <div style="display:flex;gap:12px;align-items:center">
+          <select onChange="{{ setAdminStock }}" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:10px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px">
+            <option value="true" selected="{{ adminFormStock }}">En stock</option>
+            <option value="false" selected="{{ !adminFormStock }}">Rupture</option>
+          </select>
+          <button onClick="{{ adminSubmitProduct }}" style="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:none;padding:12px 24px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.46 0.08 55)">{{ adminSubmitLabel }}</button>
+          <sc-if value="{{ adminEditing }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ adminCancelEdit }}" style="background:transparent;border:1px solid oklch(0.60 0.02 70);color:oklch(0.50 0.02 60);padding:12px 20px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;border-radius:2px">Annuler</button>
+          </sc-if>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ adminProductRows }}" as="p">
+          <div style="display:flex;align-items:center;gap:16px;padding:14px 16px;background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80)">
+            <div style="flex:1">
+              <div style="font-family:'Oswald',sans-serif;font-size:15px">{{ p.nom }}</div>
+              <div style="font-size:12px;color:oklch(0.50 0.02 60)">{{ p.catNom }} · {{ p.subNom }} · <span style="color:{{ p.stockColor }}">{{ p.stockLabel }}</span></div>
+            </div>
+            <div style="font-family:'Oswald',sans-serif;font-size:16px;color:oklch(0.46 0.08 55)">{{ p.prixF }}</div>
+            <button onClick="{{ p.edit }}" style="background:transparent;border:1px solid oklch(0.60 0.02 70);color:oklch(0.23 0.012 60);padding:8px 14px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border-color:oklch(0.22 0.012 60)">Modifier</button>
+            <button onClick="{{ p.del }}" style="background:transparent;border:1px solid oklch(0.50 0.12 25);color:oklch(0.45 0.12 25);padding:8px 14px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.45 0.12 25);color:oklch(0.96 0.008 85)">Supprimer</button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ adminShowCats }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;gap:10px;margin-bottom:24px">
+        <input value="{{ adminNewCatVal }}" onInput="{{ setAdminNewCat }}" placeholder="Nouvelle catégorie" style="flex:1;background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px">
+        <button onClick="{{ adminAddCategory }}" style="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:none;padding:12px 24px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.46 0.08 55)">Ajouter</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ adminCatRows }}" as="c">
+          <div style="display:flex;align-items:center;gap:16px;padding:14px 16px;background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80)">
+            <div style="flex:1;font-family:'Oswald',sans-serif;font-size:15px">{{ c.nom }}</div>
+            <div style="font-size:13px;color:oklch(0.50 0.02 60)">{{ c.n }} produits</div>
+            <button onClick="{{ c.del }}" style="background:transparent;border:1px solid oklch(0.50 0.12 25);color:oklch(0.45 0.12 25);padding:8px 14px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.45 0.12 25);color:oklch(0.96 0.008 85)">Supprimer</button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ adminShowSubs }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;gap:10px;margin-bottom:24px">
+        <select onChange="{{ setAdminSubCat }}" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px">
+          <option value="">— Catégorie —</option>
+          <sc-for list="{{ adminCatOptions }}" as="co">
+            <option value="{{ co.id }}">{{ co.nom }}</option>
+          </sc-for>
+        </select>
+        <input value="{{ adminNewSubVal }}" onInput="{{ setAdminNewSub }}" placeholder="Nouvelle sous-catégorie" style="flex:1;background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:12px 14px;font-family:'Lora',serif;font-size:14px;border-radius:2px">
+        <button onClick="{{ adminAddSubcategory }}" style="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:none;padding:12px 24px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.46 0.08 55)">Ajouter</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ adminSubRows }}" as="s">
+          <div style="display:flex;align-items:center;gap:16px;padding:14px 16px;background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80)">
+            <div style="flex:1;font-family:'Oswald',sans-serif;font-size:15px">{{ s.nom }}</div>
+            <div style="font-size:13px;color:oklch(0.50 0.02 60)">{{ s.catNom }}</div>
+            <button onClick="{{ s.del }}" style="background:transparent;border:1px solid oklch(0.50 0.12 25);color:oklch(0.45 0.12 25);padding:8px 14px;font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.45 0.12 25);color:oklch(0.96 0.008 85)">Supprimer</button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ pCompte }}" hint-placeholder-val="{{ false }}">
+<div data-screen-label="Mon compte" style="max-width:1240px;margin:0 auto;padding:56px 32px 80px">
+  <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.24em;text-transform:uppercase;color:oklch(0.50 0.02 60);margin-bottom:10px"><span onClick="{{ goHome }}" style="cursor:pointer">Accueil</span> / Mon compte</div>
+  <h1 style="font-family:'Oswald',sans-serif;font-size:44px;text-transform:uppercase;letter-spacing:0.03em;margin:0 0 8px">Mon compte</h1>
+  <p style="color:oklch(0.50 0.02 60);font-size:15px;margin:0 0 32px">{{ compteEmail }}</p>
+  <sc-if value="{{ compteDenied }}" hint-placeholder-val="{{ false }}">
+    <div style="text-align:center;padding:56px 24px;border:1px dashed oklch(0.65 0.02 70)">
+      <div style="font-family:'Oswald',sans-serif;font-size:18px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Connexion requise</div>
+      <div style="color:oklch(0.50 0.02 60);font-size:14px;margin-bottom:20px">Vous devez être connecté pour accéder à votre compte.</div>
+      <button onClick="{{ openAuth }}" style="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:none;padding:14px 28px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.46 0.08 55)">Se connecter</button>
+    </div>
+  </sc-if>
+  <sc-if value="{{ compteAccess }}" hint-placeholder-val="{{ false }}">
+    <div style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80);padding:28px;margin-bottom:32px">
+      <h2 style="font-family:'Oswald',sans-serif;font-size:22px;text-transform:uppercase;letter-spacing:0.04em;margin:0 0 20px">Profil</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+        <input value="{{ profileNameVal }}" onInput="{{ setProfileName }}" placeholder="Nom complet" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
+        <input value="{{ profilePhoneVal }}" onInput="{{ setProfilePhone }}" placeholder="Téléphone" style="background:oklch(0.96 0.008 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
+      </div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <button onClick="{{ saveProfile }}" style="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:none;padding:13px 24px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.46 0.08 55)">Enregistrer</button>
+        <sc-if value="{{ profileSaved }}" hint-placeholder-val="{{ false }}">
+          <span style="color:oklch(0.46 0.08 55);font-size:14px;font-family:'Oswald',sans-serif;letter-spacing:0.06em">Profil enregistré!</span>
+        </sc-if>
+      </div>
+    </div>
+    <div style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.80 0.02 80);padding:28px;margin-bottom:32px">
+      <h2 style="font-family:'Oswald',sans-serif;font-size:22px;text-transform:uppercase;letter-spacing:0.04em;margin:0 0 20px">Mes commandes</h2>
+      <sc-if value="{{ hasOrders }}" hint-placeholder-val="{{ false }}">
+        <sc-for list="{{ userOrderRows }}" as="o">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid oklch(0.88 0.012 85)">
+            <span style="font-size:14px;color:oklch(0.40 0.015 60)">{{ o.date }}</span>
+            <span style="font-family:'Oswald',sans-serif;font-size:15px;color:oklch(0.46 0.08 55)">{{ o.totalF }}</span>
+            <span style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:oklch(0.50 0.02 60)">{{ o.statusLabel }}</span>
+          </div>
+        </sc-for>
+      </sc-if>
+      <sc-if value="{{ noOrders }}" hint-placeholder-val="{{ false }}">
+        <div style="color:oklch(0.50 0.02 60);font-size:14px;text-align:center;padding:20px">Aucune commande pour le moment.</div>
+      </sc-if>
+    </div>
+    <button onClick="{{ doLogout }}" style="background:transparent;border:1px solid oklch(0.50 0.12 25);color:oklch(0.45 0.12 25);padding:13px 28px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.45 0.12 25);color:oklch(0.96 0.008 85)">Déconnexion</button>
+  </sc-if>
+</div>
+</sc-if>
+
 </main>
 
 <footer style="border-top:2px solid oklch(0.23 0.012 60);background:oklch(0.22 0.012 60);color:oklch(0.90 0.012 85)">
@@ -493,11 +656,14 @@ a:hover{color:oklch(0.46 0.08 30);}
     </div>
     <div style="display:flex;flex-direction:column;gap:14px">
       <sc-if value="{{ authSignup }}" hint-placeholder-val="{{ false }}">
-        <input placeholder="Nom complet" style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
+        <input value="{{ authName }}" onInput="{{ setAuthName }}" placeholder="Nom complet" style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
       </sc-if>
-      <input placeholder="Courriel" style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
-      <input placeholder="Mot de passe" type="password" style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
-      <button style="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:none;padding:15px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.46 0.08 55)">{{ authBtnLabel }}</button>
+      <input value="{{ authEmail }}" onInput="{{ setAuthEmail }}" placeholder="Courriel" style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
+      <input value="{{ authPassword }}" onInput="{{ setAuthPassword }}" placeholder="Mot de passe" type="password" style="background:oklch(0.99 0.004 85);border:1px solid oklch(0.72 0.02 75);color:oklch(0.23 0.012 60);padding:13px 14px;font-family:'Lora',serif;font-size:15px;border-radius:2px;width:100%">
+      <sc-if value="{{ authError }}" hint-placeholder-val="{{ false }}">
+        <div style="color:oklch(0.45 0.12 25);font-size:13px;padding:8px 12px;background:oklch(0.92 0.04 25);border:1px solid oklch(0.65 0.12 25);border-radius:2px">{{ authError }}</div>
+      </sc-if>
+      <button onClick="{{ doAuth }}" style="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85);border:none;padding:15px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.46 0.08 55)">{{ authBtnLabel }}</button>
       <sc-if value="{{ authLogin }}" hint-placeholder-val="{{ false }}">
         <div style="text-align:center;font-size:13px;color:oklch(0.50 0.02 60)"><a href="#" style="color:oklch(0.46 0.08 55)">Mot de passe oublié?</a></div>
       </sc-if>
@@ -529,7 +695,14 @@ a:hover{color:oklch(0.46 0.08 30);}
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;pageInitiale&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;accueil&quot;,&quot;options&quot;:[&quot;accueil&quot;,&quot;boutique&quot;,&quot;produit&quot;,&quot;atelier&quot;,&quot;apropos&quot;,&quot;contact&quot;,&quot;panier&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Navigation&quot;},&quot;bandeauPromo&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Affichage&quot;},&quot;panierDemo&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Affichage&quot;}}">
 class Component extends DCLogic {
-  state = { page: "accueil", cat: "tous", selId: 1, qty: 1, color: "Noir", cart: {}, added: false, data: null, hero: 0, heroOp: 1 };
+  state = {
+    page: "accueil", cat: "tous", selId: null, qty: 1, color: "Noir", cart: {}, added: false, data: null, hero: 0, heroOp: 1,
+    authOpen: false, authMode: "login", authEmail: "", authPassword: "", authName: "", authError: "", authLoading: false,
+    user: null, profile: null, isAdmin: false,
+    adminTab: "products", adminProducts: [], adminCats: [], adminSubs: [], adminForm: {}, adminEditId: null,
+    adminNewCat: "", adminNewSub: "", adminSubCatId: "",
+    profileName: "", profilePhone: "", profileSaved: false, userOrders: [],
+  };
   HERO = ["uploads/arc1.jpg", "uploads/arc2.jpg", "uploads/arc3.jpg", "uploads/photo_related.jpg", "uploads/img3.jpg", "uploads/img4.jpg", "uploads/img7.jpg"];
   heroGo(i) {
     const n = this.HERO.length;
@@ -540,21 +713,133 @@ class Component extends DCLogic {
     this._timer = setInterval(() => { if (this.state.page === "accueil") this.heroGo(this.state.hero + 1); }, 5000);
   }
   componentWillUnmount() { clearInterval(this._timer); clearTimeout(this._fade); }
-  componentDidMount() {
+  async componentDidMount() {
     requestAnimationFrame(() => this.setState({ heroReady: true }));
     this._timer = setInterval(() => { if (this.state.page === "accueil") this.heroGo(this.state.hero + 1); }, 5000);
-    import(new URL("./data.js", document.baseURI).href).then((d) => {
-      const st = { data: d };
-      if (this.props.panierDemo) st.cart = { 1: 1, 2: 2 };
-      if (this.props.pageInitiale) st.page = this.props.pageInitiale;
-      this.setState(st);
+    try {
+      const staticData = await import(new URL("./data.js", document.baseURI).href);
+      const { supabase } = await import(new URL("./supabase-client.js", document.baseURI).href);
+      this.supabase = supabase;
+      await this.loadCatalog();
+      this.setState({ data: { ...staticData, CATS: this.state.dbCats, PRODUITS: this.state.dbProds } });
+      if (this.props.panierDemo) this.setState({ cart: { 1: 1, 2: 2 } });
+      if (this.props.pageInitiale) this.setState({ page: this.props.pageInitiale });
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) await this.handleSession(session);
+      supabase.auth.onAuthStateChange((event, session) => {
+        (async () => {
+          if (session) await this.handleSession(session);
+          else this.setState({ user: null, profile: null, isAdmin: false });
+        })();
+      });
+    } catch (err) {
+      console.error("Init error:", err);
+    }
+  }
+  async loadCatalog() {
+    const sb = this.supabase;
+    const [{ data: cats }, { data: subs }, { data: prods }] = await Promise.all([
+      sb.from("categories").select("*").order("sort_order"),
+      sb.from("subcategories").select("*").order("sort_order"),
+      sb.from("products").select("*").order("created_at", { ascending: false }),
+    ]);
+    const CATS = (cats || []).map((c) => ({
+      id: String(c.id), nom: c.nom, desc: c.description || "",
+      n: (prods || []).filter((p) => p.category_id === c.id).length,
+      subs: (subs || []).filter((s) => s.category_id === c.id).map((s) => ({ id: String(s.id), nom: s.nom })),
+    }));
+    const PRODUITS = (prods || []).map((p) => ({
+      id: p.id, nom: p.nom, cat: String(p.category_id), sub: String(p.subcategory_id || ""),
+      prix: parseFloat(p.prix), tag: p.tag, src: p.source, desc: p.description, stock: p.stock, imgs: p.images || [],
+    }));
+    this.setState({ dbCats: CATS, dbProds: PRODUITS, adminProducts: prods || [], adminCats: cats || [], adminSubs: subs || [] });
+  }
+  updateData() {
+    const d = this.state.data;
+    if (!d || !this.state.dbCats) return;
+    this.setState({ data: { ...d, CATS: this.state.dbCats, PRODUITS: this.state.dbProds } });
+  }
+  async handleSession(session) {
+    const user = session.user;
+    const { data: profile } = await this.supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+    this.setState({ user, profile, isAdmin: profile?.is_admin || false, profileName: profile?.full_name || "", profilePhone: profile?.phone || "" });
+    const { data: orders } = await this.supabase.from("orders").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
+    this.setState({ userOrders: orders || [] });
+  }
+  async doAuth() {
+    const { authMode, authEmail, authPassword, authName } = this.state;
+    if (!authEmail || !authPassword) { this.setState({ authError: "Veuillez entrer votre courriel et mot de passe." }); return; }
+    this.setState({ authLoading: true, authError: "" });
+    try {
+      if (authMode === "signup") {
+        if (!authName) { this.setState({ authError: "Veuillez entrer votre nom complet.", authLoading: false }); return; }
+        const { error } = await this.supabase.auth.signUp({ email: authEmail, password: authPassword, options: { data: { full_name: authName } } });
+        if (error) throw error;
+      } else {
+        const { error } = await this.supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
+        if (error) throw error;
+      }
+      this.setState({ authOpen: false, authLoading: false, authError: "", authEmail: "", authPassword: "", authName: "" });
+    } catch (err) {
+      this.setState({ authError: err.message || "Erreur de connexion", authLoading: false });
+    }
+  }
+  async doLogout() { await this.supabase.auth.signOut(); this.setState({ user: null, profile: null, isAdmin: false, page: "accueil" }); }
+  async saveProfile() {
+    const { user, profileName, profilePhone } = this.state;
+    const { error } = await this.supabase.from("profiles").update({ full_name: profileName, phone: profilePhone }).eq("id", user.id);
+    if (!error) { this.setState({ profileSaved: true }); setTimeout(() => this.setState({ profileSaved: false }), 3000); }
+  }
+  async adminAddProduct() {
+    const f = this.state.adminForm;
+    if (!f.nom || !f.prix || !f.category_id) return;
+    const { error } = await this.supabase.rpc("admin_create_product", {
+      p_subcategory_id: f.subcategory_id ? parseInt(f.subcategory_id) : null,
+      p_category_id: parseInt(f.category_id), p_nom: f.nom, p_description: f.description || "",
+      p_prix: parseFloat(f.prix), p_source: f.source || "Arc En Flèche", p_tag: f.tag || null,
+      p_stock: f.stock !== false, p_images: f.images ? f.images.split("\n").filter((s) => s.trim()) : [],
     });
+    if (!error) { this.setState({ adminForm: {} }); await this.loadCatalog(); this.updateData(); }
+  }
+  async adminUpdateProduct(id) {
+    const f = this.state.adminForm;
+    const { error } = await this.supabase.rpc("admin_update_product", {
+      p_id: id, p_subcategory_id: f.subcategory_id ? parseInt(f.subcategory_id) : null,
+      p_category_id: parseInt(f.category_id), p_nom: f.nom, p_description: f.description || "",
+      p_prix: parseFloat(f.prix), p_source: f.source || "Arc En Flèche", p_tag: f.tag || null,
+      p_stock: f.stock !== false, p_images: f.images ? f.images.split("\n").filter((s) => s.trim()) : [],
+    });
+    if (!error) { this.setState({ adminEditId: null, adminForm: {} }); await this.loadCatalog(); this.updateData(); }
+  }
+  async adminDeleteProduct(id) {
+    const { error } = await this.supabase.rpc("admin_delete_product", { p_id: id });
+    if (!error) { await this.loadCatalog(); this.updateData(); }
+  }
+  async adminAddCategory() {
+    const { adminNewCat } = this.state;
+    if (!adminNewCat) return;
+    const { error } = await this.supabase.rpc("admin_create_category", { p_nom: adminNewCat, p_description: "", p_sort_order: 0 });
+    if (!error) { this.setState({ adminNewCat: "" }); await this.loadCatalog(); this.updateData(); }
+  }
+  async adminDeleteCategory(id) {
+    const { error } = await this.supabase.rpc("admin_delete_category", { p_id: id });
+    if (!error) { await this.loadCatalog(); this.updateData(); }
+  }
+  async adminAddSubcategory() {
+    const { adminNewSub, adminSubCatId } = this.state;
+    if (!adminNewSub || !adminSubCatId) return;
+    const { error } = await this.supabase.rpc("admin_create_subcategory", { p_category_id: parseInt(adminSubCatId), p_nom: adminNewSub, p_sort_order: 0 });
+    if (!error) { this.setState({ adminNewSub: "", adminSubCatId: "" }); await this.loadCatalog(); this.updateData(); }
+  }
+  async adminDeleteSubcategory(id) {
+    const { error } = await this.supabase.rpc("admin_delete_subcategory", { p_id: id });
+    if (!error) { await this.loadCatalog(); this.updateData(); }
   }
   go(page, extra) { this.setState({ page, added: false, ...extra }); window.scrollTo(0, 0); }
   addCart(id, n) {
     this.setState((s) => ({ cart: { ...s.cart, [id]: (s.cart[id] || 0) + (n || 1) } }));
   }
-  fmt(v) { return v.toFixed(2).replace(".", ",") + " $"; }
+  fmt(v) { return (Number(v) || 0).toFixed(2).replace(".", ",") + " $"; }
   renderVals() {
     const d = this.state.data;
     const P = d ? d.PRODUITS : [];
@@ -689,6 +974,77 @@ class Component extends DCLogic {
       tabLoginCol: s.authMode !== "signup" ? "oklch(0.96 0.008 85)" : "oklch(0.23 0.012 60)",
       tabSignupBg: s.authMode === "signup" ? "oklch(0.22 0.012 60)" : "transparent",
       tabSignupCol: s.authMode === "signup" ? "oklch(0.96 0.008 85)" : "oklch(0.23 0.012 60)",
+      isLoggedIn: !!s.user, notLoggedIn: !s.user, userIsAdmin: s.isAdmin,
+      userName: (s.profile && s.profile.full_name) || (s.user && s.user.email) || "",
+      compteEmail: (s.user && s.user.email) || "",
+      doLogout: () => this.doLogout(), goCompte: () => this.go("compte"), goAdmin: () => this.go("admin"),
+      setAuthEmail: (e) => this.setState({ authEmail: e.target.value }),
+      setAuthPassword: (e) => this.setState({ authPassword: e.target.value }),
+      setAuthName: (e) => this.setState({ authName: e.target.value }),
+      doAuth: () => this.doAuth(), authError: s.authError, authLoading: s.authLoading,
+      pAdmin: page === "admin", adminAccess: s.isAdmin, adminDenied: page === "admin" && !s.isAdmin,
+      pCompte: page === "compte", compteAccess: !!s.user, compteDenied: page === "compte" && !s.user,
+      adminShowProducts: s.isAdmin && s.adminTab === "products",
+      adminShowCats: s.isAdmin && s.adminTab === "categories",
+      adminShowSubs: s.isAdmin && s.adminTab === "subcategories",
+      adminTabProducts: () => this.setState({ adminTab: "products" }),
+      adminTabCats: () => this.setState({ adminTab: "categories" }),
+      adminTabSubs: () => this.setState({ adminTab: "subcategories" }),
+      adminTabProductsActive: s.adminTab === "products",
+      adminTabCatsActive: s.adminTab === "categories",
+      adminTabSubsActive: s.adminTab === "subcategories",
+      adminProductRows: (s.adminProducts || []).map((p) => {
+        const cat = (s.adminCats || []).find((c) => c.id === p.category_id);
+        const sub = (s.adminSubs || []).find((x) => x.id === p.subcategory_id);
+        return {
+          nom: p.nom, prixF: this.fmt(p.prix), catNom: (cat && cat.nom) || "", subNom: (sub && sub.nom) || "",
+          stockLabel: p.stock ? "En stock" : "Rupture", stockColor: p.stock ? "oklch(0.46 0.08 55)" : "oklch(0.50 0.02 60)",
+          edit: () => this.setState({ adminEditId: p.id, adminForm: { nom: p.nom, prix: String(p.prix), category_id: String(p.category_id), subcategory_id: String(p.subcategory_id || ""), description: p.description || "", tag: p.tag || "", source: p.source || "", stock: p.stock, images: (p.images || []).join("\n") } }),
+          del: () => this.adminDeleteProduct(p.id),
+        };
+      }),
+      adminCatRows: (s.adminCats || []).map((c) => ({
+        nom: c.nom, n: (s.adminProducts || []).filter((p) => p.category_id === c.id).length,
+        del: () => this.adminDeleteCategory(c.id),
+      })),
+      adminSubRows: (s.adminSubs || []).map((sub) => {
+        const cat = (s.adminCats || []).find((c) => c.id === sub.category_id);
+        return { nom: sub.nom, catNom: (cat && cat.nom) || "", del: () => this.adminDeleteSubcategory(sub.id) };
+      }),
+      adminCatOptions: (s.adminCats || []).map((c) => ({ id: c.id, nom: c.nom })),
+      adminSubOptions: (s.adminSubs || []).filter((sub) => !s.adminForm.category_id || sub.category_id === parseInt(s.adminForm.category_id)).map((sub) => ({ id: sub.id, nom: sub.nom })),
+      adminFormNom: s.adminForm.nom || "", adminFormPrix: s.adminForm.prix || "", adminFormDesc: s.adminForm.description || "",
+      adminFormTag: s.adminForm.tag || "", adminFormSource: s.adminForm.source || "", adminFormImages: s.adminForm.images || "",
+      adminFormCatId: s.adminForm.category_id || "", adminFormSubId: s.adminForm.subcategory_id || "",
+      adminFormStock: s.adminForm.stock !== false, adminEditing: !!s.adminEditId,
+      adminFormTitle: s.adminEditId ? "Modifier le produit" : "Ajouter un produit",
+      adminSubmitLabel: s.adminEditId ? "Enregistrer" : "Ajouter",
+      setAdminNom: (e) => this.setState((st) => ({ adminForm: { ...st.adminForm, nom: e.target.value } })),
+      setAdminPrix: (e) => this.setState((st) => ({ adminForm: { ...st.adminForm, prix: e.target.value } })),
+      setAdminCat: (e) => this.setState((st) => ({ adminForm: { ...st.adminForm, category_id: e.target.value } })),
+      setAdminSub: (e) => this.setState((st) => ({ adminForm: { ...st.adminForm, subcategory_id: e.target.value } })),
+      setAdminDesc: (e) => this.setState((st) => ({ adminForm: { ...st.adminForm, description: e.target.value } })),
+      setAdminTag: (e) => this.setState((st) => ({ adminForm: { ...st.adminForm, tag: e.target.value } })),
+      setAdminSource: (e) => this.setState((st) => ({ adminForm: { ...st.adminForm, source: e.target.value } })),
+      setAdminImages: (e) => this.setState((st) => ({ adminForm: { ...st.adminForm, images: e.target.value } })),
+      setAdminStock: (e) => this.setState((st) => ({ adminForm: { ...st.adminForm, stock: e.target.value === "true" } })),
+      adminSubmitProduct: () => s.adminEditId ? this.adminUpdateProduct(s.adminEditId) : this.adminAddProduct(),
+      adminCancelEdit: () => this.setState({ adminEditId: null, adminForm: {} }),
+      adminNewCatVal: s.adminNewCat, setAdminNewCat: (e) => this.setState({ adminNewCat: e.target.value }),
+      adminAddCategory: () => this.adminAddCategory(),
+      adminNewSubVal: s.adminNewSub, setAdminNewSub: (e) => this.setState({ adminNewSub: e.target.value }),
+      setAdminSubCat: (e) => this.setState({ adminSubCatId: e.target.value }), adminSubCatIdVal: s.adminSubCatId,
+      adminAddSubcategory: () => this.adminAddSubcategory(),
+      profileNameVal: s.profileName, profilePhoneVal: s.profilePhone,
+      setProfileName: (e) => this.setState({ profileName: e.target.value }),
+      setProfilePhone: (e) => this.setState({ profilePhone: e.target.value }),
+      saveProfile: () => this.saveProfile(), profileSaved: s.profileSaved,
+      userOrderRows: (s.userOrders || []).map((o) => ({
+        date: new Date(o.created_at).toLocaleDateString("fr-CA"),
+        totalF: this.fmt(o.total),
+        statusLabel: o.status === "pending" ? "En attente" : o.status === "completed" ? "Complétée" : o.status,
+      })),
+      hasOrders: (s.userOrders || []).length > 0, noOrders: (s.userOrders || []).length === 0,
     };
   }
 }

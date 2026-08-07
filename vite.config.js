@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { join, extname } from "path";
 
 const mimeTypes = {
@@ -15,50 +15,53 @@ const mimeTypes = {
   ".css": "text/css",
 };
 
-const serveRawHtml = () => ({
-  name: "serve-raw-html",
+const rawHtmlPlugin = () => ({
+  name: "raw-html",
   configureServer(server) {
     server.middlewares.use((req, res, next) => {
-      let url = req.url || "/";
-      url = url.split("?")[0];
+      let url = (req.url || "/").split("?")[0];
       if (url === "/") url = "/index.html";
       const filePath = join(process.cwd(), decodeURIComponent(url));
       try {
+        if (!existsSync(filePath)) { next(); return; }
         const content = readFileSync(filePath);
-        const ext = extname(filePath);
-        res.setHeader("Content-Type", mimeTypes[ext] || "application/octet-stream");
+        res.setHeader("Content-Type", mimeTypes[extname(filePath)] || "application/octet-stream");
         res.end(content);
-      } catch {
-        next();
-      }
+      } catch { next(); }
     });
   },
   configurePreviewServer(server) {
     server.middlewares.use((req, res, next) => {
-      let url = req.url || "/";
-      url = url.split("?")[0];
+      let url = (req.url || "/").split("?")[0];
       if (url === "/") url = "/index.html";
       const filePath = join(process.cwd(), decodeURIComponent(url));
       try {
+        if (!existsSync(filePath)) { next(); return; }
         const content = readFileSync(filePath);
-        const ext = extname(filePath);
-        res.setHeader("Content-Type", mimeTypes[ext] || "application/octet-stream");
+        res.setHeader("Content-Type", mimeTypes[extname(filePath)] || "application/octet-stream");
         res.end(content);
-      } catch {
-        next();
-      }
+      } catch { next(); }
     });
+  },
+  buildStart() {
+    // Emit the raw HTML file as-is, skipping Vite's HTML/CSS pipeline entirely
+    const content = readFileSync(join(process.cwd(), "index.html"), "utf-8");
+    this.emitFile({ type: "asset", fileName: "index.html", source: content });
   },
 });
 
 export default defineConfig({
   root: ".",
-  server: {
-    port: 5173,
-    open: false,
-    fs: { strict: false },
-  },
+  server: { port: 5173, open: false, fs: { strict: false } },
   optimizeDeps: { exclude: ["@electric-sql/pglite"] },
-  plugins: [serveRawHtml()],
+  plugins: [rawHtmlPlugin()],
   appType: "custom",
+  build: {
+    rollupOptions: {
+      input: "supabase-client.js",
+      output: { entryFileNames: "supabase-client.js" },
+    },
+    cssCodeSplit: false,
+    assetsInlineLimit: 0,
+  },
 });
