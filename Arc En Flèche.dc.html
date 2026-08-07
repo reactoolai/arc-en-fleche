@@ -68,6 +68,10 @@ a:hover{color:oklch(0.46 0.08 30);}
   .r-compte{padding:40px 20px 60px!important}
   .r-footer-section{padding:36px 20px 24px!important}
   .r-footer-bottom{padding:16px 20px!important;flex-direction:column!important;gap:6px!important;text-align:center!important}
+  .r-album-grid{grid-template-columns:repeat(2,1fr)!important}
+  .r-album-full-grid{grid-template-columns:repeat(2,1fr)!important}
+  .r-news-home > div{grid-template-columns:1fr!important;gap:20px!important;text-align:center!important}
+  .r-footer-news{flex-direction:column!important;text-align:center!important;gap:12px!important}
   .r-atelier-cta{flex-direction:column!important;align-items:stretch!important;gap:16px!important}
   .r-atelier-cta a{display:block!important;text-align:center!important}
   .r-promo{font-size:11px!important;padding:6px 12px!important}
@@ -87,6 +91,8 @@ a:hover{color:oklch(0.46 0.08 30);}
   .r-hero-badge{position:static!important;margin-top:16px!important;max-width:100%!important}
   .r-hero-stats{flex-wrap:wrap!important;gap:20px 28px!important}
   .r-hero-buttons{flex-direction:column!important}
+  .r-album-grid{grid-template-columns:1fr!important}
+  .r-album-full-grid{grid-template-columns:1fr!important}
   .r-hero-buttons button{width:100%!important}
   .r-cart-row{flex-wrap:wrap!important;gap:12px!important}
   .r-cart-row .r-cart-qty{order:3!important}
@@ -175,12 +181,13 @@ a:hover{color:oklch(0.46 0.08 30);}
   </div>
 </header>
 
-<div class="r-mobile-menu" id="mobileMenu" sc-class="mobileMenuOpen: r-open">
+<div class="r-mobile-menu" id="mobileMenu" style="display:{{ mobileMenuDisplay }}">
   <button class="r-mobile-close" onClick="{{ closeMobileMenu }}">✕</button>
   <div role="button" onClick="{{ goHome }}">Accueil</div>
   <div role="button" onClick="{{ goShop }}">Boutique</div>
   <div role="button" onClick="{{ goAtelier }}">Atelier</div>
   <div role="button" onClick="{{ goAbout }}">À propos</div>
+  <div role="button" onClick="{{ goAlbum }}">Album photo</div>
   <div role="button" onClick="{{ goContact }}">Contact</div>
   <div role="button" onClick="{{ goCart }}">Panier ({{ cartCount }})</div>
   <sc-if value="{{ isLoggedIn }}" hint-placeholder-val="{{ false }}">
@@ -416,6 +423,33 @@ a:hover{color:oklch(0.46 0.08 30);}
       </sc-for>
     </div>
   </div>
+
+  <section class="r-section r-album-preview" style="max-width:1240px;margin:0 auto;padding:32px 32px 64px">
+    <div style="display:flex;justify-content:space-between;align-items:end;margin-bottom:28px;flex-wrap:wrap;gap:16px">
+      <div>
+        <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.3em;text-transform:uppercase;color:oklch(0.46 0.08 30);margin-bottom:10px">— Album photo —</div>
+        <h2 style="font-family:'Oswald',sans-serif;font-size:36px;text-transform:uppercase;line-height:1.1;letter-spacing:0.02em;margin:0">En images</h2>
+      </div>
+      <button onClick="{{ goAlbum }}" style="background:transparent;border:1px solid oklch(0.23 0.012 60);color:oklch(0.23 0.012 60);padding:12px 24px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.22 0.012 60);color:oklch(0.96 0.008 85)">Voir l'album complet</button>
+    </div>
+    <div class="r-album-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+      <div style="aspect-ratio:1;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 14px, oklch(0.89 0.012 85) 14px, oklch(0.89 0.012 85) 28px);border:1px solid oklch(0.80 0.02 80);display:flex;align-items:center;justify-content:center"><span style="font-family:monospace;font-size:11px;color:oklch(0.55 0.02 60)">photo</span></div>
+      <div style="aspect-ratio:1;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 14px, oklch(0.89 0.012 85) 14px, oklch(0.89 0.012 85) 28px);border:1px solid oklch(0.80 0.02 80);display:flex;align-items:center;justify-content:center"><span style="font-family:monospace;font-size:11px;color:oklch(0.55 0.02 60)">photo</span></div>
+      <div style="aspect-ratio:1;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 14px, oklch(0.89 0.012 85) 14px, oklch(0.89 0.012 85) 28px);border:1px solid oklch(0.80 0.02 80);display:flex;align-items:center;justify-content:center"><span style="font-family:monospace;font-size:11px;color:oklch(0.55 0.02 60)">photo</span></div>
+      <div style="aspect-ratio:1;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 14px, oklch(0.89 0.012 85) 14px, oklch(0.89 0.012 85) 28px);border:1px solid oklch(0.80 0.02 80);display:flex;align-items:center;justify-content:center"><span style="font-family:monospace;font-size:11px;color:oklch(0.55 0.02 60)">photo</span></div>
+    </div>
+  </section>
+
+  <section class="r-section r-news-home" style="background:oklch(0.22 0.012 60);color:oklch(0.95 0.01 85)">
+    <div style="max-width:1240px;margin:0 auto;padding:56px 32px;display:grid;grid-template-columns:1fr auto;gap:32px;align-items:center">
+      <div>
+        <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.28em;text-transform:uppercase;color:oklch(0.75 0.08 70);margin-bottom:10px">— Infolettre —</div>
+        <div style="font-family:'Oswald',sans-serif;font-size:28px;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:8px">Restez à l'affût</div>
+        <div style="font-size:15px;line-height:1.7;color:oklch(0.80 0.015 85);max-width:56ch">Nouveautés, promotions et dates d'ouverture des saisons — une fois par mois, pas plus.</div>
+      </div>
+      <button onClick="{{ openNews }}" style="background:oklch(0.95 0.01 85);color:oklch(0.22 0.012 60);border:none;padding:16px 32px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px;white-space:nowrap" style-hover="background:oklch(0.75 0.08 70)">S'inscrire</button>
+    </div>
+  </section>
 </div>
 </sc-if>
 
@@ -482,6 +516,25 @@ a:hover{color:oklch(0.46 0.08 30);}
       <div style="font-size:15px;line-height:1.7;color:oklch(0.80 0.015 85);max-width:64ch">Courroies, transporteurs et colliers en paracorde, faits au Québec à la main et personnalisés aux couleurs de votre choix. Une corde de survie, durable et ultra résistante.</div>
     </div>
     <button onClick="{{ goShop }}" style="background:oklch(0.95 0.01 85);color:oklch(0.22 0.012 60);border:none;padding:16px 32px;font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;border-radius:2px;white-space:nowrap" style-hover="background:oklch(0.75 0.08 70)">Voir la collection</button>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ pAlbum }}" hint-placeholder-val="{{ false }}">
+<div class="r-album-page" data-screen-label="Album" style="max-width:1240px;margin:0 auto;padding:56px 32px 80px">
+  <div style="font-family:'Oswald',sans-serif;font-size:12px;letter-spacing:0.24em;text-transform:uppercase;color:oklch(0.50 0.02 60);margin-bottom:10px"><span onClick="{{ goHome }}" style="cursor:pointer">Accueil</span> / Album photo</div>
+  <h1 class="r-h1-md" style="font-family:'Oswald',sans-serif;font-size:44px;text-transform:uppercase;letter-spacing:0.03em;margin:0 0 8px">Album photo</h1>
+  <p style="color:oklch(0.50 0.02 60);font-size:15px;margin:0 0 40px;max-width:60ch">Photos de la boutique, de l'atelier et de nos clients en action. Cette section sera enrichie prochainement.</p>
+  <div class="r-album-full-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+    <div style="aspect-ratio:4/3;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 14px, oklch(0.89 0.012 85) 14px, oklch(0.89 0.012 85) 28px);border:1px solid oklch(0.80 0.02 80);display:flex;align-items:center;justify-content:center"><span style="font-family:monospace;font-size:13px;color:oklch(0.55 0.02 60)">photo</span></div>
+    <div style="aspect-ratio:4/3;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 14px, oklch(0.89 0.012 85) 14px, oklch(0.89 0.012 85) 28px);border:1px solid oklch(0.80 0.02 80);display:flex;align-items:center;justify-content:center"><span style="font-family:monospace;font-size:13px;color:oklch(0.55 0.02 60)">photo</span></div>
+    <div style="aspect-ratio:4/3;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 14px, oklch(0.89 0.012 85) 14px, oklch(0.89 0.012 85) 28px);border:1px solid oklch(0.80 0.02 80);display:flex;align-items:center;justify-content:center"><span style="font-family:monospace;font-size:13px;color:oklch(0.55 0.02 60)">photo</span></div>
+    <div style="aspect-ratio:4/3;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 14px, oklch(0.89 0.012 85) 14px, oklch(0.89 0.012 85) 28px);border:1px solid oklch(0.80 0.02 80);display:flex;align-items:center;justify-content:center"><span style="font-family:monospace;font-size:13px;color:oklch(0.55 0.02 60)">photo</span></div>
+    <div style="aspect-ratio:4/3;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 14px, oklch(0.89 0.012 85) 14px, oklch(0.89 0.012 85) 28px);border:1px solid oklch(0.80 0.02 80);display:flex;align-items:center;justify-content:center"><span style="font-family:monospace;font-size:13px;color:oklch(0.55 0.02 60)">photo</span></div>
+    <div style="aspect-ratio:4/3;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 14px, oklch(0.89 0.012 85) 14px, oklch(0.89 0.012 85) 28px);border:1px solid oklch(0.80 0.02 80);display:flex;align-items:center;justify-content:center"><span style="font-family:monospace;font-size:13px;color:oklch(0.55 0.02 60)">photo</span></div>
+    <div style="aspect-ratio:4/3;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 14px, oklch(0.89 0.012 85) 14px, oklch(0.89 0.012 85) 28px);border:1px solid oklch(0.80 0.02 80);display:flex;align-items:center;justify-content:center"><span style="font-family:monospace;font-size:13px;color:oklch(0.55 0.02 60)">photo</span></div>
+    <div style="aspect-ratio:4/3;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 14px, oklch(0.89 0.012 85) 14px, oklch(0.89 0.012 85) 28px);border:1px solid oklch(0.80 0.02 80);display:flex;align-items:center;justify-content:center"><span style="font-family:monospace;font-size:13px;color:oklch(0.55 0.02 60)">photo</span></div>
+    <div style="aspect-ratio:4/3;background:repeating-linear-gradient(45deg, oklch(0.92 0.01 85), oklch(0.92 0.01 85) 14px, oklch(0.89 0.012 85) 14px, oklch(0.89 0.012 85) 28px);border:1px solid oklch(0.80 0.02 80);display:flex;align-items:center;justify-content:center"><span style="font-family:monospace;font-size:13px;color:oklch(0.55 0.02 60)">photo</span></div>
   </div>
 </div>
 </sc-if>
@@ -759,6 +812,10 @@ a:hover{color:oklch(0.46 0.08 30);}
       </div>
     </div>
   </div>
+  <div class="r-footer-news" style="max-width:1240px;margin:0 auto;padding:24px 32px 32px;border-top:1px solid oklch(0.32 0.012 60);display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap">
+    <div style="font-family:'Oswald',sans-serif;font-size:14px;letter-spacing:0.12em;text-transform:uppercase;color:oklch(0.80 0.015 85)">Infolettre — restez à l'affût</div>
+    <button onClick="{{ openNews }}" style="background:oklch(0.95 0.01 85);color:oklch(0.22 0.012 60);border:none;padding:12px 28px;font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px" style-hover="background:oklch(0.75 0.08 70)">S'inscrire</button>
+  </div>
   <div class="r-footer-bottom" style="max-width:1240px;margin:0 auto;padding:20px 32px;border-top:1px solid oklch(0.32 0.012 60);display:flex;justify-content:space-between;font-size:13px;color:oklch(0.62 0.015 80)">
     <span>© 2026 Arc En Flèche. Tous droits réservés.</span>
     <span>Précision · Passion · Tradition</span>
@@ -956,7 +1013,7 @@ class Component extends DCLogic {
     const { error } = await this.supabase.rpc("admin_delete_subcategory", { p_id: id });
     if (!error) { await this.loadCatalog(); this.updateData(); }
   }
-  go(page, extra) { this.setState({ page, added: false, ...extra }); window.scrollTo(0, 0); }
+  go(page, extra) { this.setState({ page, added: false, mobileMenuOpen: false, ...extra }); window.scrollTo(0, 0); }
   addCart(id, n) {
     this.setState((s) => ({ cart: { ...s.cart, [id]: (s.cart[id] || 0) + (n || 1) } }));
   }
@@ -976,7 +1033,7 @@ class Component extends DCLogic {
     });
     const noop = () => {};
     const nav = [
-      ["Accueil", "accueil"], ["Boutique", "boutique"], ["Atelier", "atelier"], ["À propos", "apropos"], ["Contact", "contact"], ["Infolettre", "infolettre"],
+      ["Accueil", "accueil"], ["Boutique", "boutique"], ["Atelier", "atelier"], ["À propos", "apropos"], ["Album", "album"], ["Contact", "contact"], ["Infolettre", "infolettre"],
     ].map(([label, key]) => {
       const on = page === key || (key === "boutique" && page === "produit");
       const isShop = key === "boutique";
@@ -1051,19 +1108,19 @@ class Component extends DCLogic {
         bg: i === s.hero ? "oklch(0.96 0.008 85)" : "transparent",
       })),
       navItems: nav, cartN,
-      goHome: go("accueil"), goShop: go("boutique"), goAtelier: go("atelier"), goAbout: go("apropos"), goContact: go("contact"), goCart: go("panier"),
+      goHome: go("accueil"), goShop: go("boutique"), goAtelier: go("atelier"), goAbout: go("apropos"), goAlbum: go("album"), goContact: go("contact"), goCart: go("panier"),
       goLogin: () => this.setState({ authOpen: true, authMode: "login" }),
       isLoggedOut: !s.user,
       cartCount: cartN,
-      mobileMenuOpen: !!s.mobileMenuOpen,
+      mobileMenuOpen: !!s.mobileMenuOpen, mobileMenuDisplay: s.mobileMenuOpen ? "flex" : "none",
       toggleMobileMenu: () => this.setState((st) => ({ mobileMenuOpen: !st.mobileMenuOpen })),
       closeMobileMenu: () => this.setState({ mobileMenuOpen: false }),
       pHome: page === "accueil", pShop: page === "boutique", pProd: page === "produit",
-      pAtelier: page === "atelier", pAbout: page === "apropos", pContact: page === "contact", pCart: page === "panier",
+      pAtelier: page === "atelier", pAbout: page === "apropos", pAlbum: page === "album", pContact: page === "contact", pCart: page === "panier",
       catsHome: cats.map((c) => ({ ...c, go: () => this.go("boutique", { cat: c.id, sub: "tous" }) })),
       menuCats: cats.map((c) => ({ nom: c.nom, n: c.n, go: () => { this.setState({ menuOpen: false }); this.go("boutique", { cat: c.id, sub: "tous" }); } })),
       goShopAll: () => { this.setState({ menuOpen: false }); this.go("boutique", { cat: "tous", sub: "tous" }); },
-      newsOpen: !!s.newsOpen, newsSent: !!s.newsSent, newsForm: !s.newsSent,
+      newsOpen: !!s.newsOpen, newsSent: !!s.newsSent, newsForm: !s.newsSent, openNews: () => this.setState({ newsOpen: true, newsSent: false }),
       closeNews: () => this.setState({ newsOpen: false }),
       sendNews: () => this.setState({ newsSent: true }),
       best, chips, prods, nbProds: prods.length,
@@ -1101,7 +1158,7 @@ class Component extends DCLogic {
       tabLoginCol: s.authMode !== "signup" ? "oklch(0.96 0.008 85)" : "oklch(0.23 0.012 60)",
       tabSignupBg: s.authMode === "signup" ? "oklch(0.22 0.012 60)" : "transparent",
       tabSignupCol: s.authMode === "signup" ? "oklch(0.96 0.008 85)" : "oklch(0.23 0.012 60)",
-      isLoggedIn: !!s.user, notLoggedIn: !s.user, userIsAdmin: s.isAdmin,
+      isLoggedIn: !!s.user, notLoggedIn: !s.user, isLoggedOut: !s.user, userIsAdmin: s.isAdmin,
       userName: (s.profile && s.profile.full_name) || (s.user && s.user.email) || "",
       compteEmail: (s.user && s.user.email) || "",
       doLogout: () => this.doLogout(), goCompte: () => this.go("compte"), goAdmin: () => this.go("admin"),
