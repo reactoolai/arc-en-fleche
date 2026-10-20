@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { lignesPanier, useAuth, useCart, useCatalog } from "../lib/store.jsx";
 import { supabase } from "../lib/supabase.js";
@@ -10,7 +10,7 @@ import { Coche, Corbeille } from "../components/Icons.jsx";
 
 export default function Panier() {
   const { items, changer, vider } = useCart();
-  const { parId } = useCatalog();
+  const { parId, chargement } = useCatalog();
   const { user, profil, ouvrir } = useAuth();
   const [mode, setMode] = useState("retrait");
   const [envoye, setEnvoye] = useState(false);
@@ -19,30 +19,44 @@ export default function Panier() {
   const frais = mode === "retrait" || sousTotal >= LIVRAISON.seuil || !lignes.length ? 0 : LIVRAISON.frais;
   const total = sousTotal + frais;
 
-  const commander = async () => {
-    const detail = lignes.map(({ p, q }) => `• ${q} × ${p.nom}${p.desc ? " (" + p.desc + ")" : ""} — ${prix(p.prix * q)}  [#${p.id}]`).join("\n");
-    const corps =
-      `Bonjour,\n\nJ'aimerais commander :\n\n${detail}\n\nSous-total : ${prix(sousTotal)}\n` +
-      `${mode === "retrait" ? "Retrait en boutique (gratuit)" : "Livraison : " + (frais ? prix(frais) : "gratuite")}\nTotal : ${prix(total)}\n\n` +
-      `Nom : ${profil?.full_name || ""}\nTéléphone : ${profil?.phone || ""}\n\nMerci !`;
-    if (user) {
-      await supabase.from("orders").insert({
-        items: lignes.map(({ p, q }) => ({ id: p.id, nom: p.nom, desc: p.desc, prix: p.prix, qte: q })),
-        total, status: "pending",
+  const [form, setForm] = useState(false);
+  const [c, setC] = useState({ nom: "", courriel: "", tel: "", notes: "" });
+  const [etat, setEtat] = useState({ envoi: false, msg: "" });
+  useEffect(() => {
+    setC((x) => ({ nom: x.nom || profil?.full_name || "", courriel: x.courriel || user?.email || "", tel: x.tel || profil?.phone || "", notes: x.notes }));
+  }, [user, profil]);
+
+  const commander = async (e) => {
+    e.preventDefault();
+    if (!user) { ouvrir("login"); setEtat({ envoi: false, msg: "Connectez-vous pour enregistrer votre commande." }); return; }
+    if (!c.nom || !c.courriel || !c.tel) { setEtat({ envoi: false, msg: "Veuillez remplir votre nom, votre courriel et votre téléphone." }); return; }
+    const items = lignes.map(({ p, q }) => ({ productId: p.id, name: p.nom + (p.desc ? " (" + p.desc + ")" : ""), quantity: q, unitPrice: p.prix, total: p.prix * q }));
+    const notes = [mode === "retrait" ? "Retrait en boutique" : "Livraison", c.notes].filter(Boolean).join(" — ");
+    setEtat({ envoi: true, msg: "Enregistrement de votre commande…" });
+    try {
+      const { data: order, error } = await supabase.from("orders")
+        .insert({ user_id: user.id, items, total, customer_name: c.nom, customer_email: c.courriel, customer_phone: c.tel, notes })
+        .select("id").single();
+      if (error) throw error;
+      const { data, error: err2 } = await supabase.functions.invoke("send-email", {
+        body: { type: "order", orderNumber: String(order.id).slice(0, 8).toUpperCase(), customer: { name: c.nom, email: c.courriel, phone: c.tel, notes }, items, total },
       });
+      if (err2 || !data?.ok) throw new Error("courriel");
+      vider();
+      setEnvoye(true);
+    } catch {
+      setEtat({ envoi: false, msg: "Impossible d'envoyer la commande pour le moment. Réessayez ou appelez-nous au " + INFOS.tel + "." });
     }
-    window.location.href = `mailto:${INFOS.courriel}?subject=${encodeURIComponent("Commande en ligne — Arc En Flèche")}&body=${encodeURIComponent(corps)}`;
-    setEnvoye(true);
   };
 
   if (envoye) {
     return (
       <div className="conteneur section vide-boite">
         <Coche s={42} />
-        <h1>Commande prête à envoyer</h1>
-        <p>Votre application de courriel s'est ouverte avec le détail de la commande. Envoyez-la et on vous rappelle pour confirmer la disponibilité et le paiement. Vous pouvez aussi appeler au <a href={INFOS.telHref}>{INFOS.tel}</a>.</p>
+        <h1>Commande envoyée</h1>
+        <p>Merci ! Un courriel de confirmation vous a été envoyé. On vous rappelle pour confirmer la disponibilité et le paiement. Une question ? <a href={INFOS.telHref}>{INFOS.tel}</a>.</p>
         <div className="actions-ligne">
-          <button className="btn btn-fonce" onClick={() => { vider(); setEnvoye(false); }}>Vider le panier</button>
+          <Link to="/compte" className="btn btn-fonce">Mes commandes</Link>
           <Link to="/boutique" className="btn btn-contour">Continuer à magasiner</Link>
         </div>
       </div>
@@ -52,7 +66,9 @@ export default function Panier() {
   return (
     <div className="conteneur section page-panier">
       <h1 className="h1-page">Votre panier</h1>
-      {lignes.length === 0 ? (
+      {chargement && Object.keys(items).length > 0 ? (
+        <div className="fiche-squelette" />
+      ) : lignes.length === 0 ? (
         <div className="vide-boite">
           <h3>Votre panier est vide</h3>
           <p>La saison approche — il est encore temps de vous équiper.</p>
@@ -86,8 +102,19 @@ export default function Panier() {
             <div className="resume-ligne"><span>{mode === "retrait" ? "Retrait" : "Livraison"}</span><span>{frais ? prix(frais) : "Gratuit"}</span></div>
             <div className="resume-ligne resume-total"><span>Total</span><strong>{prix(total)}</strong></div>
             <p className="petit">Taxes applicables en sus. Paiement et disponibilité confirmés par téléphone.</p>
-            <button className="btn btn-orange btn-plein btn-grand" onClick={commander}>Envoyer ma commande</button>
-            {!user && <p className="petit centre">Astuce : <button className="lien-discret" onClick={() => ouvrir("login")}>connectez-vous</button> pour retrouver vos commandes.</p>}
+            {!form ? (
+              <button className="btn btn-orange btn-plein btn-grand" onClick={() => (user ? setForm(true) : ouvrir("login"))}>Passer la commande</button>
+            ) : (
+              <form className="form" onSubmit={commander}>
+                <input placeholder="Nom complet" autoComplete="name" value={c.nom} onChange={(e) => setC({ ...c, nom: e.target.value })} />
+                <input type="email" placeholder="Courriel" autoComplete="email" value={c.courriel} onChange={(e) => setC({ ...c, courriel: e.target.value })} />
+                <input placeholder="Téléphone" autoComplete="tel" value={c.tel} onChange={(e) => setC({ ...c, tel: e.target.value })} />
+                <textarea rows={2} placeholder="Note ou préférence de livraison (facultatif)" value={c.notes} onChange={(e) => setC({ ...c, notes: e.target.value })} />
+                <button className="btn btn-orange btn-plein btn-grand" disabled={etat.envoi}>{etat.envoi ? "Envoi…" : "Confirmer la commande"}</button>
+              </form>
+            )}
+            {etat.msg && <div className={etat.envoi ? "alerte alerte-ok" : "alerte"}>{etat.msg}</div>}
+            {!user && <p className="petit centre">Un compte est requis pour commander — <button className="lien-discret" onClick={() => ouvrir("login")}>connexion ou création de compte</button>.</p>}
           </aside>
         </div>
       )}

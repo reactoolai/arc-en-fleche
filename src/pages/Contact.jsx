@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { HORAIRE, INFOS } from "../data/site.js";
 import { etatOuverture } from "../lib/format.js";
+import { supabase } from "../lib/supabase.js";
 import { Epingle, Facebook, Horloge, Telephone } from "../components/Icons.jsx";
 
 export default function Contact() {
@@ -8,10 +9,21 @@ export default function Contact() {
   const etat = etatOuverture();
   const champ = (k) => ({ value: f[k], onChange: (e) => setF({ ...f, [k]: e.target.value }) });
 
-  const envoyer = (e) => {
+  const [statut, setStatut] = useState({ envoi: false, ok: false, msg: "" });
+
+  const envoyer = async (e) => {
     e.preventDefault();
-    const corps = `${f.message}\n\n—\n${f.nom}\n${f.tel}\n${f.courriel}`;
-    window.location.href = `mailto:${INFOS.courriel}?subject=${encodeURIComponent(f.sujet + " — " + f.nom)}&body=${encodeURIComponent(corps)}`;
+    setStatut({ envoi: true, ok: false, msg: "Envoi en cours…" });
+    try {
+      const { data, error } = await supabase.functions.invoke("send-email", {
+        body: { type: "contact", name: f.nom, phone: f.tel, email: f.courriel, category: f.sujet, message: f.message },
+      });
+      if (error || !data?.ok) throw new Error();
+      setF({ nom: "", tel: "", courriel: "", sujet: "Question générale", message: "" });
+      setStatut({ envoi: false, ok: true, msg: "Message envoyé. Nous vous répondrons rapidement." });
+    } catch {
+      setStatut({ envoi: false, ok: false, msg: `Impossible d'envoyer le message pour le moment. Écrivez-nous à ${INFOS.courriel} ou appelez au ${INFOS.tel}.` });
+    }
   };
 
   return (
@@ -53,8 +65,8 @@ export default function Contact() {
             <option>Disponibilité d'un produit</option>
           </select>
           <textarea rows={6} placeholder="Votre message" required {...champ("message")} />
-          <button className="btn btn-orange btn-plein btn-grand">Envoyer le message</button>
-          <p className="petit">Votre application de courriel s'ouvrira avec le message prêt à envoyer.</p>
+          <button className="btn btn-orange btn-plein btn-grand" disabled={statut.envoi}>{statut.envoi ? "Envoi…" : "Envoyer le message"}</button>
+          {statut.msg && <div className={statut.ok ? "alerte alerte-ok" : statut.envoi ? "petit" : "alerte"}>{statut.msg}</div>}
         </form>
       </section>
     </>
