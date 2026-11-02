@@ -5,6 +5,8 @@ import { ALBUM, HORAIRE, INFOS, MARQUES, SERVICES } from "../data/site.js";
 import { etatOuverture } from "../lib/format.js";
 import { CarteProduit, PhotoProduit, SqueletteCartes } from "../components/Produit.jsx";
 import Apparition from "../components/Apparition.jsx";
+import { BoutonPhoto, Txt } from "../components/Editable.jsx";
+import { useContenu } from "../lib/contenu.jsx";
 import { Epingle, Fleche, Horloge, IconeService, Telephone } from "../components/Icons.jsx";
 
 const ONGLETS = [
@@ -17,6 +19,7 @@ const ONGLETS = [
 export default function Accueil() {
   const { produits, chargement } = useCatalog();
   const [onglet, setOnglet] = useState("peche");
+  const { image: img } = useContenu();
   const etat = etatOuverture();
 
   const vedettes = useMemo(() => {
@@ -39,19 +42,20 @@ export default function Accueil() {
     <>
       {/* ---------- Héros ---------- */}
       <section className="heros">
-        <img className="heros-img" src="/images/hero-etang.webp" alt="Archère en position de tir au bord d'un étang du Lac-Saint-Jean" fetchpriority="high" />
+        <img className="heros-img" src={img("accueil.heros", "/images/hero-etang.webp")} alt="Archère en position de tir au bord d'un étang du Lac-Saint-Jean" fetchpriority="high" />
         <div className="heros-voile" />
         <div className="heros-topo" aria-hidden="true" />
+        <BoutonPhoto k="accueil.heros" style={{ top: 140 }} />
         <div className="conteneur heros-in">
-          <p className="heros-lieu"><Epingle s={16} /> Saint-Bruno · Lac-Saint-Jean</p>
+          <p className="heros-lieu"><Epingle s={16} /> <Txt k="accueil.lieu">Saint-Bruno · Lac-Saint-Jean</Txt></p>
           <h1>
-            <span className="ligne">Équipé pour</span>
-            <span className="ligne ligne-orange">le territoire.</span>
+            <Txt k="accueil.titre1" className="ligne">Équipé pour</Txt>
+            <Txt k="accueil.titre2" className="ligne ligne-orange">le territoire.</Txt>
           </h1>
-          <p className="heros-txt">
+          <Txt k="accueil.intro" as="p" className="heros-txt">
             Archerie, chasse et pêche depuis 35 ans. Un atelier sur place, des conseils de gens qui chassent
             vraiment, et plus de {produits.length > 0 ? Math.floor(produits.length / 10) * 10 : 490} articles prêts pour la saison.
-          </p>
+          </Txt>
           <div className="heros-actions">
             <Link to="/boutique" className="btn btn-orange btn-grand">Magasiner la boutique <Fleche s={18} /></Link>
             <Link to="/atelier" className="btn btn-contour-clair btn-grand">Atelier de réparation</Link>
@@ -73,30 +77,33 @@ export default function Accueil() {
       {/* ---------- Terrains ---------- */}
       <section className="section conteneur">
         <Apparition className="titre-section">
-          <p className="sur-titre">Nos départements</p>
-          <h2>Choisissez votre terrain</h2>
+          <Txt k="accueil.dep.surtitre" as="p" className="sur-titre">Nos départements</Txt>
+          <Txt k="accueil.dep.titre" as="h2">Choisissez votre terrain</Txt>
         </Apparition>
         <div className="bento">
           <Apparition as={Link} to="/boutique?cat=12" className="tuile tuile-grande" delai={0}>
-            <img src="/images/orignal.webp" alt="Orignal récolté en forêt boréale" loading="lazy" />
+            <img src={img("accueil.tuile1", "/images/orignal.webp")} alt="Orignal récolté en forêt boréale" loading="lazy" />
+            <BoutonPhoto k="accueil.tuile1" />
             <div className="tuile-txt">
-              <span className="sur-titre">Orignal &amp; chevreuil</span>
-              <h3>Salines, attractifs et minéraux</h3>
-              <span className="tuile-lien">Buck Expert, Buck Hunter, Maniaque de prospection <Fleche s={16} /></span>
+              <Txt k="accueil.tuile1.surtitre" className="sur-titre">Orignal &amp; chevreuil</Txt>
+              <Txt k="accueil.tuile1.titre" as="h3">Salines, attractifs et minéraux</Txt>
+              <span className="tuile-lien"><Txt k="accueil.tuile1.lien">Buck Expert, Buck Hunter, Maniaque de prospection</Txt> <Fleche s={16} /></span>
             </div>
           </Apparition>
           <Apparition as={Link} to="/boutique?cat=9" className="tuile" delai={80}>
-            <img src="/images/archere.webp" alt="Archère en position de tir" loading="lazy" />
+            <img src={img("accueil.tuile2", "/images/archere.webp")} alt="Archère en position de tir" loading="lazy" />
+            <BoutonPhoto k="accueil.tuile2" />
             <div className="tuile-txt">
-              <span className="sur-titre">Archerie</span>
-              <h3>Carquois, étuis et accessoires</h3>
+              <Txt k="accueil.tuile2.surtitre" className="sur-titre">Archerie</Txt>
+              <Txt k="accueil.tuile2.titre" as="h3">Carquois, étuis et accessoires</Txt>
             </div>
           </Apparition>
           <Apparition as={Link} to="/boutique?cat=13" className="tuile" delai={160}>
-            <img src="/images/chevreuil-neige.webp" alt="Chasseurs en dossard orange avec un chevreuil" loading="lazy" />
+            <img src={img("accueil.tuile3", "/images/chevreuil-neige.webp")} alt="Chasseurs en dossard orange avec un chevreuil" loading="lazy" />
+            <BoutonPhoto k="accueil.tuile3" />
             <div className="tuile-txt">
-              <span className="sur-titre">Chasse</span>
-              <h3>Appeaux, optique et entretien d'armes</h3>
+              <Txt k="accueil.tuile3.surtitre" className="sur-titre">Chasse</Txt>
+              <Txt k="accueil.tuile3.titre" as="h3">Appeaux, optique et entretien d'armes</Txt>
             </div>
           </Apparition>
           <Apparition as={Link} to="/boutique?cat=5" className="tuile tuile-peche" delai={240}>
@@ -105,7 +112,7 @@ export default function Accueil() {
             </div>
             <div className="tuile-txt">
               <span className="sur-titre">Pêche · {produits.filter((p) => p.cat === 5).length || 300}+ articles</span>
-              <h3>Moulinets, cannes, leurres et lignes</h3>
+              <Txt k="accueil.tuile4.titre" as="h3">Moulinets, cannes, leurres et lignes</Txt>
             </div>
           </Apparition>
         </div>
@@ -116,8 +123,8 @@ export default function Accueil() {
         <div className="conteneur">
           <div className="titre-section titre-ligne">
             <div>
-              <p className="sur-titre">En boutique maintenant</p>
-              <h2>Le meilleur de l'inventaire</h2>
+              <Txt k="accueil.vedettes.surtitre" as="p" className="sur-titre">En boutique maintenant</Txt>
+              <Txt k="accueil.vedettes.titre" as="h2">Le meilleur de l'inventaire</Txt>
             </div>
             <div className="onglets onglets-ligne" role="tablist">
               {ONGLETS.map((o) => (
@@ -141,10 +148,10 @@ export default function Accueil() {
       {/* ---------- Chiffres ---------- */}
       <section className="chiffres">
         <div className="conteneur chiffres-in">
-          <Apparition className="chiffre"><strong>35</strong><span>ans au service des chasseurs du Lac</span></Apparition>
-          <Apparition className="chiffre" delai={80}><strong>17</strong><span>ans d'expérience en technique d'archerie</span></Apparition>
-          <Apparition className="chiffre" delai={160}><strong>{produits.length || 490}</strong><span>articles en inventaire</span></Apparition>
-          <Apparition className="chiffre" delai={240}><strong>48 h</strong><span>pour la plupart des réparations</span></Apparition>
+          <Apparition className="chiffre"><Txt k="accueil.chiffre1" as="strong">35</Txt><Txt k="accueil.chiffre1.txt">ans au service des chasseurs du Lac</Txt></Apparition>
+          <Apparition className="chiffre" delai={80}><Txt k="accueil.chiffre2" as="strong">17</Txt><Txt k="accueil.chiffre2.txt">ans d'expérience en technique d'archerie</Txt></Apparition>
+          <Apparition className="chiffre" delai={160}><strong>{produits.length || 490}</strong><Txt k="accueil.chiffre3.txt">articles en inventaire</Txt></Apparition>
+          <Apparition className="chiffre" delai={240}><Txt k="accueil.chiffre4" as="strong">48 h</Txt><Txt k="accueil.chiffre4.txt">pour la plupart des réparations</Txt></Apparition>
         </div>
       </section>
 
@@ -153,25 +160,26 @@ export default function Accueil() {
         <div className="topo-fond" aria-hidden="true" />
         <div className="conteneur atelier-grille">
           <Apparition className="atelier-photo">
-            <img src="/images/comptoir.webp" alt="L'équipe Arc En Flèche au comptoir de la boutique" loading="lazy" />
-            <div className="atelier-badge"><strong>Diagnostic</strong><span>gratuit</span></div>
+            <img src={img("accueil.atelier", "/images/comptoir.webp")} alt="L'équipe Arc En Flèche au comptoir de la boutique" loading="lazy" />
+            <BoutonPhoto k="accueil.atelier" />
+            <div className="atelier-badge"><Txt k="accueil.badge1" as="strong">Diagnostic</Txt><Txt k="accueil.badge2">gratuit</Txt></div>
           </Apparition>
           <div>
             <Apparition>
-              <p className="sur-titre sur-titre-orange">L'atelier</p>
-              <h2 className="h2-clair">On répare ce que<br />les autres remplacent.</h2>
-              <p className="txt-clair">Changement de corde, réglage d'arc, empennage, entretien de moulinet, mise au point de carabine. Vous l'apportez au comptoir, on l'évalue devant vous.</p>
+              <Txt k="accueil.atelier.surtitre" as="p" className="sur-titre sur-titre-orange">L'atelier</Txt>
+              <Txt k="accueil.atelier.titre" as="h2" className="h2-clair">On répare ce que<br />les autres remplacent.</Txt>
+              <Txt k="accueil.atelier.txt" as="p" className="txt-clair">Changement de corde, réglage d'arc, empennage, entretien de moulinet et réparation d'arbalète. Vous l'apportez au comptoir, on l'évalue devant vous.</Txt>
             </Apparition>
             <ul className="services-mini">
               {SERVICES.slice(0, 4).map((s, i) => (
-                <Apparition as="li" key={s.nom} delai={i * 70}>
+                <Apparition as="li" key={s.nom + i} delai={i * 70}>
                   <span className="services-ico"><IconeService nom={s.icone} s={26} /></span>
                   <span><strong>{s.nom}</strong><small>{s.delai}</small></span>
                   <em>{s.prix}</em>
                 </Apparition>
               ))}
             </ul>
-            <blockquote>« Apportez-le. Si ça se répare, on le répare. »</blockquote>
+            <Txt k="accueil.citation" as="blockquote">« Apportez-le. Si ça se répare, on le répare. »</Txt>
             <Link to="/atelier" className="btn btn-orange">Tous les services et tarifs <Fleche s={16} /></Link>
           </div>
         </div>
@@ -181,14 +189,14 @@ export default function Accueil() {
       <section className="section conteneur">
         <div className="titre-section titre-ligne">
           <div>
-            <p className="sur-titre">Sur le terrain</p>
-            <h2>Nos clients en action</h2>
+            <Txt k="accueil.album.surtitre" as="p" className="sur-titre">Sur le terrain</Txt>
+            <Txt k="accueil.album.titre" as="h2">Nos clients en action</Txt>
           </div>
           <Link to="/album" className="lien-fleche">Tout l'album <Fleche s={16} /></Link>
         </div>
         <div className="mosaique">
           {ALBUM.slice(0, 5).map((a, i) => (
-            <Apparition as={Link} to="/album" key={a.src} className={`mosaique-${i}`} delai={i * 60}>
+            <Apparition as={Link} to="/album" key={a.src + i} className={`mosaique-${i}`} delai={i * 60}>
               <img src={a.src} alt={a.alt} loading="lazy" />
             </Apparition>
           ))}
@@ -199,9 +207,9 @@ export default function Accueil() {
       <section className="section section-papier">
         <div className="conteneur visite">
           <div>
-            <p className="sur-titre">Visitez-nous</p>
-            <h2>Au cœur du Lac-Saint-Jean</h2>
-            <p className="txt">À dix minutes d'Alma, sur le chemin de vos territoires de chasse. Des conseils francs, un atelier sur place et une allée de tir pour tester votre équipement.</p>
+            <Txt k="accueil.visite.surtitre" as="p" className="sur-titre">Visitez-nous</Txt>
+            <Txt k="accueil.visite.titre" as="h2">Au cœur du Lac-Saint-Jean</Txt>
+            <Txt k="accueil.visite.txt" as="p" className="txt">À dix minutes d'Alma, sur le chemin de vos territoires de chasse. Des conseils francs, un atelier sur place et une allée de tir pour tester votre équipement.</Txt>
             <div className={`etat ${etat.ouvert ? "etat-ouvert" : ""}`}><i />{etat.texte}</div>
             <ul className="visite-infos">
               <li><Epingle s={18} /><span>{INFOS.rue}<br />{INFOS.ville} {INFOS.codePostal}</span></li>
@@ -215,7 +223,7 @@ export default function Accueil() {
             <a href={INFOS.itineraire} target="_blank" rel="noreferrer" className="btn btn-fonce">Obtenir l'itinéraire <Fleche s={16} /></a>
           </div>
           <div className="carte-geo">
-            <iframe src={INFOS.carte} loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="Carte — 413, rue St-Alphonse, Saint-Bruno" />
+            <iframe src={INFOS.carte} loading="lazy" referrerPolicy="no-referrer-when-downgrade" title={`Carte — ${INFOS.rue}`} />
           </div>
         </div>
       </section>

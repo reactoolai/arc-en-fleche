@@ -3,12 +3,14 @@ import { Link } from "react-router-dom";
 import { lignesPanier, useAuth, useCart, useCatalog } from "../lib/store.jsx";
 import { supabase } from "../lib/supabase.js";
 import { INFOS, LIVRAISON } from "../data/site.js";
+import { useContenu } from "../lib/contenu.jsx";
 import { prix } from "../lib/format.js";
 import { PhotoProduit } from "../components/Produit.jsx";
 import { BarreLivraison, Quantite } from "../components/TiroirPanier.jsx";
 import { Coche, Corbeille } from "../components/Icons.jsx";
 
 export default function Panier() {
+  useContenu();
   const { items, changer, vider } = useCart();
   const { parId, chargement } = useCatalog();
   const { user, profil, ouvrir } = useAuth();

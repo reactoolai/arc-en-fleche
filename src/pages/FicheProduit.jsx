@@ -2,12 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useCart, useCatalog } from "../lib/store.jsx";
 import { INFOS, LIVRAISON } from "../data/site.js";
+import { useContenu } from "../lib/contenu.jsx";
 import { prix } from "../lib/format.js";
 import { CarteProduit, PhotoProduit } from "../components/Produit.jsx";
 import { Quantite } from "../components/TiroirPanier.jsx";
 import { Camion, Coche, Epingle, Outil, Telephone } from "../components/Icons.jsx";
 
 export default function FicheProduit() {
+  useContenu();
   const { id } = useParams();
   const { parId, catParId, produits, chargement } = useCatalog();
   const { ajouter } = useCart();

@@ -5,14 +5,18 @@ import { prix, sansAccents } from "../lib/format.js";
 import PHOTOS from "../data/productImages.js";
 import { PhotoProduit } from "../components/Produit.jsx";
 import Scanner from "../components/Scanner.jsx";
+import AdminSite from "../components/AdminSite.jsx";
+import { televerserPhoto } from "../lib/contenu.jsx";
+import { useSearchParams } from "react-router-dom";
 import { Fermer, Recherche } from "../components/Icons.jsx";
 
-const ONGLETS = [["produits", "Produits"], ["inventaire", "Inventaire"], ["fournisseurs", "Fournisseurs"], ["categories", "Catégories"], ["sous", "Sous-catégories"]];
+const ONGLETS = [["site", "Contenu du site"], ["produits", "Produits"], ["inventaire", "Inventaire"], ["fournisseurs", "Fournisseurs"], ["categories", "Catégories"], ["sous", "Sous-catégories"]];
 
 export default function Admin() {
   const { user, admin, ouvrir } = useAuth();
   const cat = useCatalog();
-  const [onglet, setOnglet] = useState("produits");
+  const [params] = useSearchParams();
+  const [onglet, setOnglet] = useState(params.get("onglet") || "produits");
   const [fournisseurs, setFournisseurs] = useState([]);
 
   const chargerFournisseurs = useCallback(async () => {
@@ -38,6 +42,7 @@ export default function Admin() {
       <div className="onglets onglets-ligne onglets-defile">
         {ONGLETS.map(([k, l]) => <button key={k} className={onglet === k ? "actif" : ""} onClick={() => setOnglet(k)}>{l}</button>)}
       </div>
+      {onglet === "site" && <AdminSite />}
       {onglet === "produits" && <Produits fournisseurs={fournisseurs} />}
       {onglet === "inventaire" && <Inventaire fournisseurs={fournisseurs} />}
       {onglet === "fournisseurs" && <Fournisseurs liste={fournisseurs} recharger={chargerFournisseurs} />}
@@ -93,6 +98,7 @@ function Produits({ fournisseurs }) {
   const [f, setF] = useState(PRODUIT_VIDE);
   const [msg, setMsg] = useState("");
   const [scan, setScan] = useState(false);
+  const [envoi, setEnvoi] = useState(false);
   const [alerteSku, verifier, setAlerteSku] = useChampSku(edit === "nouveau" ? null : edit);
 
   const liste = useMemo(() => {
@@ -140,6 +146,17 @@ function Produits({ fournisseurs }) {
   const champ = (k) => ({ value: f[k], onChange: (e) => setF({ ...f, [k]: e.target.value }) });
   const setSku = (v) => { setF((x) => ({ ...x, sku: v })); verifier(v); };
   const apercus = f.images.split("\n").map((u) => u.trim()).filter(Boolean);
+  const retirerPhoto = (u) => setF((x) => ({ ...x, images: x.images.split("\n").filter((l) => l.trim() !== u).join("\n") }));
+
+  const televerser = async (fichiers) => {
+    setEnvoi(true); setMsg("");
+    const urls = [];
+    for (const file of fichiers) {
+      try { urls.push(await televerserPhoto(file, "prod")); } catch (err) { setMsg(`Téléversement impossible : ${err.message}`); }
+    }
+    setF((x) => ({ ...x, images: [...x.images.split("\n").map((u) => u.trim()).filter(Boolean), ...urls].join("\n") }));
+    setEnvoi(false);
+  };
 
   return (
     <>
@@ -154,7 +171,7 @@ function Produits({ fournisseurs }) {
         </select>
         <button className="btn btn-orange" onClick={() => ouvrirForm(null)}>+ Ajouter un produit</button>
       </div>
-      <p className="petit">{liste.length} produit(s). La photo « auto » vient de la bibliothèque du site ; collez une URL d'image dans la fiche pour la remplacer.</p>
+      <p className="petit">{liste.length} produit(s). La photo « auto » vient de la bibliothèque du site ; cliquez sur « Modifier » puis « Téléverser des photos » pour la remplacer.</p>
       <Liste>
         {liste.slice(0, limite).map((p) => (
           <li key={p.id}>
@@ -205,16 +222,30 @@ function Produits({ fournisseurs }) {
               <label>Source<input placeholder="Sam Hunting ou Arc En Flèche" {...champ("source")} /></label>
             </div>
             <label>Description / couleur<textarea rows={2} placeholder="Décrivez le produit…" {...champ("description")} /></label>
-            <label>Photos du produit (URL, une par ligne — laisser vide pour la photo auto)<textarea rows={2} {...champ("images")} /></label>
+            <label>Photos du produit — téléverser depuis l'ordinateur ou le téléphone
+              <input type="file" accept="image/*" multiple onChange={(e) => { televerser(Array.from(e.target.files || [])); e.target.value = ""; }} />
+            </label>
+            {envoi && <p className="petit">Téléversement en cours…</p>}
             {(apercus.length > 0 || (edit !== "nouveau" && PHOTOS[edit])) && (
               <div className="apercus">
-                {apercus.length ? apercus.map((u) => <img key={u} src={u} alt="" />) : <span className="apercu-auto"><img src={PHOTOS[edit]} alt="" /><em>photo auto</em></span>}
+                {apercus.length
+                  ? apercus.map((u) => (
+                    <span key={u} className="apercu-auto">
+                      <img src={u} alt="" />
+                      <button type="button" onClick={() => retirerPhoto(u)} aria-label="Retirer la photo">×</button>
+                    </span>
+                  ))
+                  : <span className="apercu-auto"><img src={PHOTOS[edit]} alt="" /><em>photo auto</em></span>}
               </div>
             )}
+            <details>
+              <summary className="petit">Ou coller des liens d'images (une URL par ligne)</summary>
+              <textarea rows={2} {...champ("images")} />
+            </details>
             <label className="interrupteur"><input type="checkbox" checked={f.stock} onChange={(e) => setF({ ...f, stock: e.target.checked })} /><span /> En stock (affiché en boutique)</label>
             {msg && <div className="alerte">{msg}</div>}
             <div className="actions-ligne actions-gauche">
-              <button className="btn btn-orange">{edit === "nouveau" ? "Ajouter" : "Enregistrer"}</button>
+              <button className="btn btn-orange" disabled={envoi}>{edit === "nouveau" ? "Ajouter" : "Enregistrer"}</button>
               <button type="button" className="btn btn-contour" onClick={() => setEdit(null)}>Annuler</button>
             </div>
           </form>

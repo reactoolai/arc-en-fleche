@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { ALBUM } from "../data/site.js";
 import Apparition from "../components/Apparition.jsx";
+import { Txt } from "../components/Editable.jsx";
+import { useContenu } from "../lib/contenu.jsx";
 import { Fermer, Fleche } from "../components/Icons.jsx";
 
 export default function Album() {
+  useContenu();
   const [ouvert, setOuvert] = useState(null);
 
   useEffect(() => {
@@ -22,15 +25,15 @@ export default function Album() {
       <section className="page-tete">
         <div className="topo-fond" aria-hidden="true" />
         <div className="conteneur page-tete-in">
-          <p className="sur-titre sur-titre-orange">Album photo</p>
-          <h1>Sur le terrain</h1>
-          <p>La boutique, l'atelier, et nos clients en action. Envoyez-nous vos photos de chasse et de pêche sur Facebook !</p>
+          <Txt k="album.surtitre" as="p" className="sur-titre sur-titre-orange">Album photo</Txt>
+          <Txt k="album.titre" as="h1">Sur le terrain</Txt>
+          <Txt k="album.intro" as="p">La boutique, l'atelier, et nos clients en action. Envoyez-nous vos photos de chasse et de pêche sur Facebook !</Txt>
         </div>
       </section>
       <section className="section conteneur">
         <div className="album">
           {ALBUM.map((a, i) => (
-            <Apparition key={a.src} className="album-item" delai={(i % 3) * 60}>
+            <Apparition key={a.src + i} className="album-item" delai={(i % 3) * 60}>
               <button onClick={() => setOuvert(i)} aria-label={`Agrandir : ${a.alt}`}>
                 <img src={a.src} alt={a.alt} loading="lazy" />
               </button>

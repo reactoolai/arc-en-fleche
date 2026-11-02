@@ -15,9 +15,12 @@ import Panier from "./pages/Panier.jsx";
 import Compte from "./pages/Compte.jsx";
 import Admin from "./pages/Admin.jsx";
 import Introuvable from "./pages/Introuvable.jsx";
+import { BarreEdition } from "./components/Editable.jsx";
+import { useAuth } from "./lib/store.jsx";
 
 export default function App() {
   const { pathname } = useLocation();
+  const { admin } = useAuth();
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
   return (
@@ -41,6 +44,7 @@ export default function App() {
       <Pied />
       <TiroirPanier />
       <Connexion />
+      <BarreEdition admin={admin} />
     </div>
   );
 }

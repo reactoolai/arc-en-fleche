@@ -1,3 +1,5 @@
+// INFOS, HORAIRE, SERVICES et ALBUM sont les valeurs par défaut : lib/contenu.jsx
+// les remplace sur place par ce que l'administrateur a enregistré.
 export const INFOS = {
   rue: "413, rue St-Alphonse",
   ville: "Saint-Bruno-Lac-Saint-Jean (Québec)",
@@ -25,7 +27,6 @@ export const SERVICES = [
   { nom: "Réglage et mise au point d'arc", prix: "À partir de 60 $", desc: "Tillering, alignement du repose-flèche, réglage du viseur et test en allée de tir.", delai: "48 h", icone: "arc" },
   { nom: "Empennage et coupe de flèches", prix: "2,50 $ / flèche", desc: "Coupe à votre allonge, empennage à neuf, inserts collés.", delai: "Sur place", icone: "fleche" },
   { nom: "Entretien de moulinet", prix: "À partir de 35 $", desc: "Démontage complet, nettoyage, graissage, remplacement des roulements usés.", delai: "3 à 5 jours", icone: "moulinet" },
-  { nom: "Mise au point de carabine", prix: "À partir de 50 $", desc: "Montage de lunette, ajustement au collimateur et zérotage.", delai: "48 h", icone: "cible" },
   { nom: "Réparation d'arbalète", prix: "Sur évaluation", desc: "Diagnostic gratuit — gâchette, rail, arbrier, remplacement de pièces d'origine.", delai: "Variable", icone: "arbalete" },
 ];
 

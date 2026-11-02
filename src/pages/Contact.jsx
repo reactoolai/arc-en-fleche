@@ -2,9 +2,12 @@ import { useState } from "react";
 import { HORAIRE, INFOS } from "../data/site.js";
 import { etatOuverture } from "../lib/format.js";
 import { supabase } from "../lib/supabase.js";
+import { useContenu } from "../lib/contenu.jsx";
+import { Txt } from "../components/Editable.jsx";
 import { Epingle, Facebook, Horloge, Telephone } from "../components/Icons.jsx";
 
 export default function Contact() {
+  useContenu();
   const [f, setF] = useState({ nom: "", tel: "", courriel: "", sujet: "Question générale", message: "" });
   const etat = etatOuverture();
   const champ = (k) => ({ value: f[k], onChange: (e) => setF({ ...f, [k]: e.target.value }) });
@@ -31,9 +34,9 @@ export default function Contact() {
       <section className="page-tete">
         <div className="topo-fond" aria-hidden="true" />
         <div className="conteneur page-tete-in">
-          <p className="sur-titre sur-titre-orange">Contact</p>
-          <h1>Parlons équipement.</h1>
-          <p>Question sur un produit, une réparation ou une commande spéciale — on répond rapidement.</p>
+          <Txt k="contact.surtitre" as="p" className="sur-titre sur-titre-orange">Contact</Txt>
+          <Txt k="contact.titre" as="h1">Parlons équipement.</Txt>
+          <Txt k="contact.intro" as="p">Question sur un produit, une réparation ou une commande spéciale — on répond rapidement.</Txt>
         </div>
       </section>
       <section className="section conteneur contact">
@@ -49,7 +52,7 @@ export default function Contact() {
           <ul className="heures">
             {HORAIRE.map((h) => <li key={h.label}><span>{h.label}</span><strong>{h.plage}</strong></li>)}
           </ul>
-          <div className="carte-geo"><iframe src={INFOS.carte} loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="Carte — 413, rue St-Alphonse, Saint-Bruno" /></div>
+          <div className="carte-geo"><iframe src={INFOS.carte} loading="lazy" referrerPolicy="no-referrer-when-downgrade" title={`Carte — ${INFOS.rue}`} /></div>
         </div>
         <form className="contact-form form" onSubmit={envoyer}>
           <h2 className="h2-petit">Écrivez-nous</h2>

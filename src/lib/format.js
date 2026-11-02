@@ -50,7 +50,7 @@ const heureQuebec = (d = new Date()) => {
   return { jour: jours[get("weekday")], h: (Number(get("hour")) % 24) + Number(get("minute")) / 60 };
 };
 
-const fmtH = (h) => {
+export const fmtH = (h) => {
   const hh = Math.floor(h), mm = Math.round((h - hh) * 60);
   return `${hh} h${mm ? " " + String(mm).padStart(2, "0") : ""}`;
 };

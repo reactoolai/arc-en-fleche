@@ -2,11 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth, useCart, useCatalog } from "../lib/store.jsx";
 import { INFOS, LIVRAISON } from "../data/site.js";
+import { useContenu } from "../lib/contenu.jsx";
 import { prix, sansAccents } from "../lib/format.js";
 import { Compte, Fermer, Fleche, Menu, Recherche, Sac, Telephone } from "./Icons.jsx";
 import { PhotoProduit } from "./Produit.jsx";
 
 export default function Entete() {
+  useContenu();
   const { pathname } = useLocation();
   const accueil = pathname === "/";
   const [defile, setDefile] = useState(false);
