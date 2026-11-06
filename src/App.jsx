@@ -11,6 +11,7 @@ import Atelier from "./pages/Atelier.jsx";
 import APropos from "./pages/APropos.jsx";
 import Album from "./pages/Album.jsx";
 import Contact from "./pages/Contact.jsx";
+import CartesCadeaux from "./pages/CartesCadeaux.jsx";
 import Panier from "./pages/Panier.jsx";
 import Compte from "./pages/Compte.jsx";
 import Admin from "./pages/Admin.jsx";
@@ -35,6 +36,7 @@ export default function App() {
           <Route path="/a-propos" element={<APropos />} />
           <Route path="/album" element={<Album />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/cartes-cadeaux" element={<CartesCadeaux />} />
           <Route path="/panier" element={<Panier />} />
           <Route path="/compte" element={<Compte />} />
           <Route path="/admin" element={<Admin />} />

@@ -6,11 +6,12 @@ import PHOTOS from "../data/productImages.js";
 import { PhotoProduit } from "../components/Produit.jsx";
 import Scanner from "../components/Scanner.jsx";
 import AdminSite from "../components/AdminSite.jsx";
+import CartesCadeauxAdmin from "../components/CartesCadeauxAdmin.jsx";
 import { televerserPhoto } from "../lib/contenu.jsx";
 import { useSearchParams } from "react-router-dom";
 import { Fermer, Recherche } from "../components/Icons.jsx";
 
-const ONGLETS = [["site", "Contenu du site"], ["produits", "Produits"], ["inventaire", "Inventaire"], ["fournisseurs", "Fournisseurs"], ["categories", "Catégories"], ["sous", "Sous-catégories"]];
+const ONGLETS = [["site", "Contenu du site"], ["cartes", "Cartes cadeaux"], ["produits", "Produits"], ["inventaire", "Inventaire"], ["fournisseurs", "Fournisseurs"], ["categories", "Catégories"], ["sous", "Sous-catégories"]];
 
 export default function Admin() {
   const { user, admin, ouvrir } = useAuth();
@@ -43,6 +44,7 @@ export default function Admin() {
         {ONGLETS.map(([k, l]) => <button key={k} className={onglet === k ? "actif" : ""} onClick={() => setOnglet(k)}>{l}</button>)}
       </div>
       {onglet === "site" && <AdminSite />}
+      {onglet === "cartes" && <CartesCadeauxAdmin />}
       {onglet === "produits" && <Produits fournisseurs={fournisseurs} />}
       {onglet === "inventaire" && <Inventaire fournisseurs={fournisseurs} />}
       {onglet === "fournisseurs" && <Fournisseurs liste={fournisseurs} recharger={chargerFournisseurs} />}

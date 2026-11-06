@@ -41,6 +41,7 @@ export default function Pied() {
             <li><Link to="/atelier">Atelier de réparation</Link></li>
             <li><Link to="/a-propos">Notre histoire</Link></li>
             <li><Link to="/album">Album photo</Link></li>
+            <li><Link to="/cartes-cadeaux">Cartes cadeaux</Link></li>
             <li><Link to="/contact">Contact</Link></li>
             <li><Link to="/compte">Mon compte</Link></li>
           </ul>

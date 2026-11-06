@@ -5,6 +5,7 @@ import { ALBUM, HORAIRE, INFOS, MARQUES, SERVICES } from "../data/site.js";
 import { etatOuverture } from "../lib/format.js";
 import { CarteProduit, PhotoProduit, SqueletteCartes } from "../components/Produit.jsx";
 import Apparition from "../components/Apparition.jsx";
+import CarteCadeau from "../components/CarteCadeau.jsx";
 import { BoutonPhoto, Txt } from "../components/Editable.jsx";
 import { useContenu } from "../lib/contenu.jsx";
 import { Epingle, Fleche, Horloge, IconeService, Telephone } from "../components/Icons.jsx";
@@ -60,6 +61,10 @@ export default function Accueil() {
             <Link to="/boutique" className="btn btn-orange btn-grand">Magasiner la boutique <Fleche s={18} /></Link>
             <Link to="/atelier" className="btn btn-contour-clair btn-grand">Atelier de réparation</Link>
           </div>
+          <Link to="/cartes-cadeaux" className="heros-cc" aria-label="Offrir une carte cadeau Arc En Flèche">
+            <span className="heros-cc-pastille">Nouveau · Cartes cadeaux <Fleche s={14} /></span>
+            <CarteCadeau montant={100} pour="Quelqu'un de spécial" de="vous" petite />
+          </Link>
         </div>
         <div className="heros-bas conteneur">
           <div className={`etat etat-pilule ${etat.ouvert ? "etat-ouvert" : ""}`}><i />{etat.texte}</div>
@@ -200,6 +205,19 @@ export default function Accueil() {
               <img src={a.src} alt={a.alt} loading="lazy" />
             </Apparition>
           ))}
+        </div>
+      </section>
+
+      {/* ---------- Cartes cadeaux ---------- */}
+      <section className="section conteneur accueil-cc">
+        <Apparition as={Link} to="/cartes-cadeaux" aria-label="Offrir une carte cadeau">
+          <CarteCadeau montant={200} pour="Votre chasseur préféré" de="vous" />
+        </Apparition>
+        <div>
+          <Txt k="accueil.cc.surtitre" as="p" className="sur-titre">Cartes cadeaux</Txt>
+          <Txt k="accueil.cc.titre" as="h2">Offrez la prochaine sortie</Txt>
+          <Txt k="accueil.cc.txt" as="p" className="txt">De 100 $ à 1000 $ ou le montant de votre choix, avec votre message. Envoyée par courriel en quelques secondes, ou par la poste dans une vraie carte.</Txt>
+          <Link to="/cartes-cadeaux" className="btn btn-orange">Offrir une carte cadeau <Fleche s={16} /></Link>
         </div>
       </section>
 

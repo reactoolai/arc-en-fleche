@@ -61,6 +61,7 @@ export default function Entete() {
             <NavLink to="/atelier" onMouseEnter={() => setMega(false)}>Atelier</NavLink>
             <NavLink to="/a-propos" onMouseEnter={() => setMega(false)}>À propos</NavLink>
             <NavLink to="/album" onMouseEnter={() => setMega(false)}>Album</NavLink>
+            <NavLink to="/cartes-cadeaux" onMouseEnter={() => setMega(false)}>Cartes cadeaux</NavLink>
             <NavLink to="/contact" onMouseEnter={() => setMega(false)}>Contact</NavLink>
           </nav>
           <div className="entete-actions">
@@ -129,6 +130,7 @@ function MenuMobile({ fermer, cats }) {
           <Link to="/atelier">Atelier</Link>
           <Link to="/a-propos">À propos</Link>
           <Link to="/album">Album photo</Link>
+          <Link to="/cartes-cadeaux">Cartes cadeaux</Link>
           <Link to="/contact">Contact</Link>
           <Link to="/panier">Panier</Link>
           {user ? (

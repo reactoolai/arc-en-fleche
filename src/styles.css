@@ -751,3 +751,92 @@ blockquote { margin: 0 0 30px; font-family: var(--titre); font-size: clamp(24px,
   .heures-edit li { grid-template-columns: 1fr auto; }
   .barre-edition span { display: none; }
 }
+
+/* =========================================================
+   Cartes cadeaux
+   ========================================================= */
+.cc-grille { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(32px, 5vw, 72px); align-items: start; }
+.cc-apercu-colle { position: sticky; top: calc(var(--entete) + 24px); display: grid; gap: 18px; }
+.cc-carte {
+  position: relative; aspect-ratio: 1.586; border-radius: 20px; overflow: hidden; color: var(--os);
+  background: radial-gradient(120% 90% at 85% 10%, #2c4535 0%, transparent 55%), linear-gradient(135deg, var(--mousse-2) 0%, var(--foret) 52%, var(--encre) 100%);
+  box-shadow: 0 30px 60px -24px rgb(13 20 16 / .55), inset 0 0 0 1px rgb(243 237 226 / .08);
+  padding: clamp(18px, 4.4%, 30px); display: flex; flex-direction: column; justify-content: space-between;
+  container-type: inline-size; transition: transform .4s;
+}
+.cc-carte:hover { transform: rotate(-1deg) translateY(-3px); }
+.cc-topo { position: absolute; inset: 0; background: url(/images/topo.svg) center / cover no-repeat; opacity: .12; pointer-events: none; }
+.cc-cible { position: absolute; right: -14%; bottom: -36%; width: 62%; aspect-ratio: 1; border-radius: 50%; pointer-events: none;
+  background: repeating-radial-gradient(circle, rgb(255 106 26 / .16) 0 6%, transparent 6% 13%); }
+.cc-fleche { position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: linear-gradient(90deg, transparent 0%, rgb(255 106 26 / .7) 30%, rgb(255 106 26 / .7) 85%, transparent 100%); opacity: .5; }
+.cc-haut, .cc-bas { position: relative; display: flex; justify-content: space-between; gap: 12px; z-index: 1; }
+.cc-haut { align-items: flex-start; }
+.cc-bas { align-items: flex-end; }
+.cc-logo { width: clamp(64px, 22cqi, 120px); height: auto; filter: drop-shadow(0 4px 14px rgb(0 0 0 / .35)); }
+.cc-montant { text-align: right; display: grid; }
+.cc-montant span, .cc-etiq { font-family: var(--cond); font-weight: 700; letter-spacing: .24em; text-transform: uppercase; font-size: clamp(10px, 2.6cqi, 14px); color: var(--orange); }
+.cc-montant strong { font-family: var(--titre); font-weight: 900; font-size: clamp(36px, 13cqi, 76px); line-height: .95; letter-spacing: -.01em; }
+.cc-bas > div { display: grid; min-width: 0; }
+.cc-etiq { color: var(--gris-clair); }
+.cc-nom { font-family: var(--cond); font-weight: 700; font-size: clamp(18px, 5.4cqi, 30px); line-height: 1.1; text-transform: uppercase; letter-spacing: .04em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc-de { font-size: clamp(11px, 2.8cqi, 14px); color: var(--gris-clair); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: clamp(10px, 2.8cqi, 14px); letter-spacing: .12em; color: var(--orange); background: rgb(13 20 16 / .55); padding: 6px 10px; border-radius: 8px; white-space: nowrap; border: 1px solid rgb(255 106 26 / .35); }
+.cc-mot { background: #fff; border: 1px solid var(--ligne); border-left: 4px solid var(--orange); border-radius: 12px; padding: 18px 20px; font-family: Georgia, serif; font-style: italic; font-size: 17px; color: #2a2f2b; }
+.cc-mot p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.cc-mot span { display: block; text-align: right; margin-top: 8px; font-family: var(--cond); font-style: normal; font-weight: 700; color: var(--ecorce); }
+.cc-mot-vide p { color: var(--gris-clair); }
+.cc-avantages { list-style: none; padding: 0; margin: 4px 0 0; display: grid; gap: 8px; font-size: 15px; color: #4a544d; }
+.cc-avantages li { padding-left: 26px; position: relative; }
+.cc-avantages li::before { content: ""; position: absolute; left: 0; top: .55em; width: 14px; height: 2px; background: var(--orange); box-shadow: 6px -4px 0 -0.5px var(--orange), 6px 4px 0 -0.5px var(--orange); }
+.cc-form { gap: 26px; }
+.cc-form fieldset { border: 0; padding: 0 0 26px; margin: 0; display: grid; gap: 14px; border-bottom: 1px solid var(--ligne); min-width: 0; }
+.cc-form fieldset:last-child { border-bottom: 0; padding-bottom: 0; }
+.cc-form legend { font-family: var(--titre); font-weight: 800; font-size: 28px; text-transform: uppercase; display: flex; align-items: center; gap: 12px; margin-bottom: 14px; padding: 0; }
+.cc-form legend em { font-style: normal; width: 32px; height: 32px; border-radius: 50%; background: var(--encre); color: var(--os); display: grid; place-items: center; font-family: var(--cond); font-size: 16px; }
+.cc-montants { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.cc-montants button { padding: 16px 6px; border-radius: 12px; border: 1.5px solid var(--ligne); background: #fff; font-family: var(--titre); font-weight: 800; font-size: 22px; transition: all .2s; }
+.cc-montants button:hover { border-color: var(--encre); }
+.cc-montants button.actif { background: var(--encre); border-color: var(--encre); color: var(--os); box-shadow: inset 0 -3px 0 var(--orange); }
+.cc-perso { position: relative; }
+.cc-perso input { width: 100%; padding-right: 40px; font-family: var(--titre); font-weight: 800; font-size: 24px; }
+.cc-perso span { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-family: var(--titre); font-weight: 800; font-size: 22px; color: var(--gris); }
+.cc-compte { justify-self: end; font-family: var(--texte); text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--gris-clair); }
+.cc-adresse { display: grid; gap: 14px; padding: 18px; background: var(--os); border-radius: 12px; }
+.cc-adresse-3 { display: grid; grid-template-columns: 1.4fr .8fr 1fr; gap: 12px; }
+.cc-total { display: grid; gap: 10px; background: #fff; border: 1px solid var(--ligne); border-radius: 12px; padding: 18px 20px; }
+.cc-paiement { min-height: 90px; }
+.cc-paiement-charge { border-radius: 10px; background: linear-gradient(90deg, #efe9de 0%, #f8f4ec 50%, #efe9de 100%); background-size: 200% 100%; animation: brille 1.4s infinite; }
+.cc-test { background: #fff3e0; color: #8a4a00; }
+.cc-securite { margin: 0; text-align: center; }
+.cc-merci { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 72px); align-items: center; }
+.cc-actions { justify-content: flex-start; margin-top: 20px; }
+.accueil-cc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 72px); align-items: center; }
+.accueil-cc .cc-carte { transform: rotate(-3deg); }
+.accueil-cc .cc-carte:hover { transform: rotate(0) translateY(-3px); }
+@media (max-width: 900px) {
+  .cc-grille, .cc-merci, .accueil-cc { grid-template-columns: 1fr; }
+  .cc-apercu-colle { position: static; }
+  .cc-montants { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 640px) {
+  .cc-adresse-3 { grid-template-columns: 1fr 1fr; }
+  .cc-adresse-3 label:first-child { grid-column: 1 / -1; }
+  .cc-form legend { font-size: 24px; }
+  .cc-montants button { font-size: 19px; padding: 14px 4px; }
+}
+.cc-form .choix-mode label { display: flex; gap: 12px; align-items: center; font-family: var(--texte); font-weight: 400; font-size: 16px; letter-spacing: 0; text-transform: none; color: var(--encre); }
+.cc-form .choix-mode input { width: auto; padding: 0; }
+
+/* Petite carte cadeau dans le héros de l'accueil */
+.heros-cc { position: absolute; right: 0; bottom: 60px; width: 300px; display: grid; gap: 12px; justify-items: end; animation: monte .9s .5s both; }
+.heros-cc .cc-carte { width: 100%; transform: rotate(5deg); transition: transform .4s; animation: flotte 6s 1.4s ease-in-out infinite; }
+.heros-cc:hover .cc-carte { transform: rotate(0) translateY(-6px) scale(1.03); animation-play-state: paused; }
+.heros-cc-pastille { display: inline-flex; align-items: center; gap: 8px; background: var(--orange); color: #fff; padding: 7px 14px; border-radius: 99px; font-family: var(--cond); font-weight: 700; font-size: 14px; letter-spacing: .14em; text-transform: uppercase; box-shadow: 0 10px 30px -10px rgb(255 106 26 / .8); }
+.cc-carte-petite { border-radius: 14px; }
+@keyframes flotte { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
+@media (max-width: 1100px) {
+  .heros-cc { position: relative; right: auto; bottom: auto; width: 250px; margin-top: 34px; justify-items: start; }
+  .heros-cc .cc-carte { transform: rotate(-3deg); }
+}
+@media (prefers-reduced-motion: reduce) { .heros-cc .cc-carte { animation: none; } }
+.cc-carte-petite .cc-code { display: none; }
