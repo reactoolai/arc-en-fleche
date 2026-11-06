@@ -289,3 +289,4 @@ Deno.serve(async (req) => {
 
   return json({ ok: true, id: ligne.id, recipientEmail: c.recipientEmail, amount: c.amount, total, emailSent: courrielOkDest, environment: squareEnv() });
 });
+
