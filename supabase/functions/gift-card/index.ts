@@ -6,7 +6,7 @@
 //   SQUARE_LOCATION_ID      ID de l'emplacement Square
 //   SQUARE_ACCESS_TOKEN     Jeton d'accès Square (secret)
 //   RESEND_API_KEY          Déjà utilisé par la fonction send-email
-//   GIFT_EMAIL_FROM         Expéditeur, ex. « Arc En Flèche <cartes@arcenfleche.com> » (domaine vérifié chez Resend)
+//   GIFT_EMAIL_FROM         (facultatif) Expéditeur ; sinon premier domaine vérifié chez Resend
 //   GIFT_TEAM_EMAIL         Courriel(s) de l'équipe, séparés par des virgules (défaut : info@arcenfleche.com)
 //   SITE_URL                Défaut : https://arcenfleche.com
 //   SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY  fournis automatiquement
@@ -86,6 +86,21 @@ function valider(b: Record<string, unknown>) {
 
 /* ---------------- Courriels (Resend) ---------------- */
 
+// Expéditeur : GIFT_EMAIL_FROM, sinon le premier domaine vérifié du compte Resend
+let expediteur: string | null = null;
+async function trouverExpediteur(): Promise<string> {
+  if (expediteur) return expediteur;
+  const defini = env("GIFT_EMAIL_FROM");
+  if (defini) return (expediteur = defini);
+  try {
+    const r = await fetch("https://api.resend.com/domains", { headers: { Authorization: `Bearer ${env("RESEND_API_KEY")}` } });
+    const d = await r.json();
+    const dom = (d?.data ?? []).find((x: { status?: string }) => x.status === "verified");
+    if (dom?.name) return (expediteur = `Arc En Flèche <cartes-cadeaux@${dom.name}>`);
+  } catch (e) { console.error("Resend domains", e); }
+  return "Arc En Flèche <onboarding@resend.dev>";
+}
+
 async function envoyerCourriel(to: string[], subject: string, html: string, replyTo?: string) {
   const cle = env("RESEND_API_KEY");
   if (!cle) throw new Error("RESEND_API_KEY manquant");
@@ -93,7 +108,7 @@ async function envoyerCourriel(to: string[], subject: string, html: string, repl
     method: "POST",
     headers: { Authorization: `Bearer ${cle}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      from: env("GIFT_EMAIL_FROM", "Arc En Flèche <onboarding@resend.dev>"),
+      from: await trouverExpediteur(),
       to,
       subject,
       html,
@@ -198,7 +213,8 @@ Deno.serve(async (req) => {
 
   // Configuration publique pour le formulaire Square (aucun secret)
   if (body.action === "config") {
-    return json({ ok: true, configured: configure, environment: squareEnv(), applicationId: configure ? appId : null, locationId: configure ? locationId : null, physicalFee: FRAIS_PHYSIQUE, min: MIN, max: MAX, presets: PRESETS });
+    const from = await trouverExpediteur();
+    return json({ ok: true, configured: configure, emailFrom: from.replace(/^.*</, "").replace(">", ""), environment: squareEnv(), applicationId: configure ? appId : null, locationId: configure ? locationId : null, physicalFee: FRAIS_PHYSIQUE, min: MIN, max: MAX, presets: PRESETS });
   }
 
   if (body.action !== "purchase") return json({ ok: false, error: "Action inconnue" }, 400);
