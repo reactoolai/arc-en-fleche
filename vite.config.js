@@ -26,7 +26,7 @@ function pagesPartage() {
       const dist = resolve(__dirname, "dist");
       const base = readFileSync(resolve(dist, "index.html"), "utf8");
       for (const [chemin, m] of Object.entries(PAGES_PARTAGE)) {
-        const url = `${SITE}/${chemin}`;
+        const url = `${SITE}/${chemin}/`;
         const head = [
           `<title>${esc(m.title)}</title>`,
           `<meta name="description" content="${esc(m.description)}" />`,
