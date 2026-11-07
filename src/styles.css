@@ -840,3 +840,11 @@ blockquote { margin: 0 0 30px; font-family: var(--titre); font-size: clamp(24px,
 }
 @media (prefers-reduced-motion: reduce) { .heros-cc .cc-carte { animation: none; } }
 .cc-carte-petite .cc-code { display: none; }
+/* Champs de carte Clover (iFrames) */
+.cc-paiement { display: grid; gap: 12px; }
+.cc-paiement-3 { display: grid; grid-template-columns: 1.1fr .8fr 1fr; gap: 12px; }
+.cc-champ { height: 50px; background: #fff; border: 1.5px solid var(--ligne); border-radius: 10px; overflow: hidden; transition: border-color .2s; }
+.cc-champ:focus-within { border-color: var(--orange); }
+.cc-champ iframe { width: 100% !important; height: 48px !important; border: 0; }
+.cc-paiement-charge .cc-champ { background: transparent; }
+@media (max-width: 640px) { .cc-paiement-3 { grid-template-columns: 1fr 1fr; } .cc-paiement-3 label:last-child { grid-column: 1 / -1; } }

@@ -11,21 +11,29 @@ const MAX = 5000;
 const PROVINCES = ["QC", "ON", "NB", "NS", "PE", "NL", "MB", "SK", "AB", "BC", "YT", "NT", "NU"];
 const courrielOk = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s.trim());
 
-// Charge le SDK Web Payments de Square (sandbox ou production) une seule fois
+// Charge le SDK iFrame de Clover (production ou sandbox) une seule fois.
+// Les numéros de carte sont saisis dans des iFrames Clover : ils ne passent jamais par nos serveurs.
 let sdk = null;
-function chargerSquare(environment) {
-  if (window.Square) return Promise.resolve(window.Square);
+let instance = null;
+function chargerClover(environment) {
   if (!sdk) {
     sdk = new Promise((ok, ko) => {
+      if (window.Clover) return ok(window.Clover);
       const s = document.createElement("script");
-      s.src = environment === "production" ? "https://web.squarecdn.com/v1/square.js" : "https://sandbox.web.squarecdn.com/v1/square.js";
-      s.onload = () => ok(window.Square);
-      s.onerror = () => { sdk = null; ko(new Error("square")); };
+      s.src = environment === "sandbox" ? "https://checkout.sandbox.dev.clover.com/sdk.js" : "https://checkout.clover.com/sdk.js";
+      s.onload = () => ok(window.Clover);
+      s.onerror = () => { sdk = null; ko(new Error("clover")); };
       document.head.appendChild(s);
     });
   }
   return sdk;
 }
+
+const STYLE_CLOVER = {
+  body: { fontFamily: "Barlow, system-ui, sans-serif" },
+  input: { fontSize: "16px", color: "#0d1410", padding: "0 14px", height: "48px" },
+  "input::placeholder": { color: "#a9b3ab" },
+};
 
 export default function CartesCadeaux() {
   const [choix, setChoix] = useState(200);
@@ -51,7 +59,7 @@ export default function CartesCadeaux() {
     return () => { document.title = avant; };
   }, []);
 
-  // Configuration Square (IDs publics servis par la fonction, les clés restent dans les secrets)
+  // Configuration Clover (jeton public et Merchant ID servis par la fonction, le jeton privé reste dans les secrets)
   useEffect(() => {
     let annule = false;
     supabase.functions.invoke("gift-card", { body: { action: "config" } })
@@ -60,33 +68,33 @@ export default function CartesCadeaux() {
     return () => { annule = true; };
   }, []);
 
-  // Champ de carte de crédit Square
+  // Champs de carte Clover (numéro, expiration, CVV, code postal)
   useEffect(() => {
     if (!config?.configured || fini) return;
-    let carte, annule = false;
+    let annule = false;
+    const ids = ["cc-num", "cc-date", "cc-cvv", "cc-postal"];
     (async () => {
       try {
-        const Square = await chargerSquare(config.environment);
-        const payments = Square.payments(config.applicationId, config.locationId);
-        carte = await payments.card({
-          style: {
-            input: { color: "#0d1410", fontSize: "16px" },
-            "input::placeholder": { color: "#a9b3ab" },
-            ".input-container": { borderColor: "#ddd2bf", borderRadius: "10px" },
-            ".input-container.is-focus": { borderColor: "#ff6a1a" },
-            ".message-text": { color: "#6f7a72" },
-          },
+        const Clover = await chargerClover(config.environment);
+        if (annule) return;
+        if (!instance) instance = new Clover(config.publicToken, { merchantId: config.merchantId, locale: "fr-CA" });
+        const elements = instance.elements();
+        const types = ["CARD_NUMBER", "CARD_DATE", "CARD_CVV", "CARD_POSTAL_CODE"];
+        types.forEach((t, i) => {
+          const el = document.getElementById(ids[i]);
+          if (el) { el.innerHTML = ""; elements.create(t, STYLE_CLOVER).mount("#" + ids[i]); }
         });
-        if (annule) { carte.destroy(); return; }
-        await carte.attach("#cc-paiement");
-        carteRef.current = carte;
+        carteRef.current = instance;
         setPret(true);
       } catch (e) {
         console.error(e);
         if (!annule) setEtat({ envoi: false, msg: "Le formulaire de paiement n'a pas pu se charger. Rechargez la page ou appelez-nous." });
       }
     })();
-    return () => { annule = true; setPret(false); carteRef.current = null; carte?.destroy?.(); };
+    return () => {
+      annule = true; setPret(false); carteRef.current = null;
+      ids.forEach((id) => { const el = document.getElementById(id); if (el) el.innerHTML = ""; });
+    };
   }, [config, fini]);
 
   const erreurForm = () => {
@@ -107,14 +115,10 @@ export default function CartesCadeaux() {
     if (!carteRef.current) { setEtat({ envoi: false, msg: "Le paiement en ligne n'est pas disponible pour le moment." }); return; }
     setEtat({ envoi: true, msg: "" });
     try {
-      const [prenom, ...reste] = f.buyerName.trim().split(/\s+/);
-      const t = await carteRef.current.tokenize({
-        amount: total.toFixed(2), currencyCode: "CAD", intent: "CHARGE",
-        customerInitiated: true, sellerKeyedIn: false,
-        billingContact: { givenName: prenom, familyName: reste.join(" "), email: f.buyerEmail.trim(), countryCode: "CA" },
-      });
-      if (t.status !== "OK") {
-        setEtat({ envoi: false, msg: t.errors?.[0]?.message ? "Vérifiez les informations de la carte." : "Paiement annulé." });
+      const t = await carteRef.current.createToken();
+      if (!t?.token) {
+        const premiere = t?.errors ? Object.values(t.errors).find(Boolean) : null;
+        setEtat({ envoi: false, msg: premiere ? `Vérifiez la carte : ${premiere}` : "Vérifiez les informations de la carte." });
         return;
       }
       const { data, error } = await supabase.functions.invoke("gift-card", {
@@ -153,7 +157,7 @@ export default function CartesCadeaux() {
               : <>La carte cadeau de <strong>{montantTxt(fini.amount)}</strong> vient d'être envoyée à <strong>{fini.recipientEmail}</strong> avec votre message et son code unique.</>}
             {fini.physique && <> La carte physique partira par la poste dans les prochains jours ouvrables.</>}
           </p>
-          <p className="petit">Total payé : {montantTxt(fini.total)}. Un reçu Square vous est envoyé par courriel.{fini.environment === "sandbox" && " (Mode test Square : aucun montant réel prélevé.)"}</p>
+          <p className="petit">Total payé : {montantTxt(fini.total)}. Un reçu Clover vous est envoyé par courriel.{fini.environment === "sandbox" && " (Mode test : aucun montant réel prélevé.)"}</p>
           <div className="actions-ligne cc-actions">
             <button className="btn btn-orange" onClick={() => { setFini(null); idem.current = crypto.randomUUID(); setF({ recipientName: "", recipientEmail: "", buyerName: f.buyerName, buyerEmail: f.buyerEmail, message: "" }); setEtat({ envoi: false, msg: "" }); }}>Offrir une autre carte</button>
             <Link to="/boutique" className="btn btn-contour">Voir la boutique</Link>
@@ -188,7 +192,7 @@ export default function CartesCadeaux() {
             <ul className="cc-avantages">
               <li>Code unique envoyé par courriel après le paiement</li>
               <li>Valable en boutique, en ligne et à l'atelier</li>
-              <li>Paiement sécurisé par Square</li>
+              <li>Paiement sécurisé par Clover</li>
             </ul>
           </div>
         </div>
@@ -256,18 +260,25 @@ export default function CartesCadeaux() {
               <div className="resume-ligne resume-total"><span>Total</span><strong>{montantTxt(total)}</strong></div>
             </div>
             {config?.environment === "sandbox" && config?.configured && (
-              <p className="alerte cc-test">Mode test Square (sandbox) : utilisez la carte 4111 1111 1111 1111, une date future, CVV 111 et le code postal G0W 2L0.</p>
+              <p className="alerte cc-test">Mode test Clover (sandbox) : utilisez la carte 4005 5717 0222 2222, une date future, CVV 123 et un code postal valide.</p>
             )}
             {indisponible ? (
               <p className="alerte">Le paiement en ligne des cartes cadeaux sera activé sous peu. En attendant, appelez-nous au <a href={INFOS.telHref}>{INFOS.tel}</a> ou passez en boutique.</p>
             ) : (
-              <div id="cc-paiement" className={`cc-paiement ${pret ? "" : "cc-paiement-charge"}`} />
+              <div className={`cc-paiement ${pret ? "" : "cc-paiement-charge"}`}>
+                <label className="cc-champ-l">Numéro de carte<div id="cc-num" className="cc-champ" /></label>
+                <div className="cc-paiement-3">
+                  <label className="cc-champ-l">Expiration<div id="cc-date" className="cc-champ" /></label>
+                  <label className="cc-champ-l">CVV<div id="cc-cvv" className="cc-champ" /></label>
+                  <label className="cc-champ-l">Code postal<div id="cc-postal" className="cc-champ" /></label>
+                </div>
+              </div>
             )}
             <button className="btn btn-orange btn-plein btn-grand" disabled={etat.envoi || !pret}>
               {etat.envoi ? "Paiement en cours…" : `Payer ${montantTxt(total)}`}
             </button>
             {etat.msg && <div className="alerte" role="alert">{etat.msg}</div>}
-            <p className="petit cc-securite">Paiement traité par Square. Vos informations de carte ne transitent jamais par nos serveurs.</p>
+            <p className="petit cc-securite">Paiement traité par Clover, le même système que notre caisse en boutique. Vos informations de carte ne transitent jamais par nos serveurs.</p>
           </fieldset>
         </form>
       </section>

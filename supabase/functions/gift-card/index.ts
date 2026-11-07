@@ -1,10 +1,10 @@
-// Cartes cadeaux Arc En Flèche — paiement Square, création de la carte, courriels.
+// Cartes cadeaux Arc En Flèche — paiement Clover, création de la carte, courriels.
 //
 // Secrets (Bolt › Database › Secrets) — aucune clé n'est écrite dans le code :
-//   SQUARE_ENVIRONMENT      "sandbox" (défaut) ou "production"
-//   SQUARE_APPLICATION_ID   ID d'application Square (sandbox-sq0idb-… ou sq0idp-…)
-//   SQUARE_LOCATION_ID      ID de l'emplacement Square
-//   SQUARE_ACCESS_TOKEN     Jeton d'accès Square (secret)
+//   CLOVER_ENVIRONMENT      "production" (défaut) ou "sandbox"
+//   CLOVER_MERCHANT_ID      Merchant ID Clover (13 caractères)
+//   CLOVER_PUBLIC_TOKEN     Jeton public e-commerce (iFrame) — envoyé au navigateur
+//   CLOVER_PRIVATE_TOKEN    Jeton privé e-commerce (secret, encaissement)
 //   RESEND_API_KEY          Déjà utilisé par la fonction send-email
 //   GIFT_EMAIL_FROM         (facultatif) Expéditeur ; sinon premier domaine vérifié chez Resend
 //   GIFT_TEAM_EMAIL         Courriel(s) de l'équipe, séparés par des virgules (défaut : info@arcenfleche.com)
@@ -28,8 +28,8 @@ const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json" } });
 
-const squareEnv = () => (env("SQUARE_ENVIRONMENT", "sandbox").toLowerCase() === "production" ? "production" : "sandbox");
-const squareBase = () => (squareEnv() === "production" ? "https://connect.squareup.com" : "https://connect.squareupsandbox.com");
+const payEnv = () => (env("CLOVER_ENVIRONMENT", "production").toLowerCase() === "sandbox" ? "sandbox" : "production");
+const cloverBase = () => (payEnv() === "sandbox" ? "https://scl-sandbox.dev.clover.com" : "https://scl.clover.com");
 const siteUrl = () => env("SITE_URL", "https://arcenfleche.com").replace(/\/$/, "");
 
 const esc = (s: unknown) =>
@@ -193,7 +193,7 @@ ${ligne("Destinataire", `${esc(c.recipientName)}<br><a href="mailto:${esc(c.reci
 ${ligne("Livraison", c.physical ? "Courriel + <strong>carte physique par la poste</strong>" : "Courriel seulement")}
 ${a ? ligne("Adresse postale", `${esc(a.nom)}<br>${esc(a.rue)}<br>${esc(a.ville)} (${esc(a.province)}) ${esc(a.codePostal)}`) : ""}
 ${c.message ? ligne("Message", esc(c.message).replace(/\n/g, "<br>")) : ""}
-${ligne("Paiement Square", `${esc(c.paymentId)}${c.receiptUrl ? ` · <a href="${esc(c.receiptUrl)}">reçu</a>` : ""}${squareEnv() === "sandbox" ? " <strong style='color:#b03122'>(SANDBOX — test)</strong>" : ""}`)}
+${ligne("Paiement Clover", `${esc(c.paymentId)}${c.receiptUrl ? ` · <a href="${esc(c.receiptUrl)}">reçu</a>` : ""}${payEnv() === "sandbox" ? " <strong style='color:#b03122'>(SANDBOX — test)</strong>" : ""}`)}
 </table></td></tr></table></body></html>`;
 }
 
@@ -206,15 +206,15 @@ Deno.serve(async (req) => {
   let body: Record<string, unknown>;
   try { body = await req.json(); } catch { return json({ ok: false, error: "Requête invalide" }, 400); }
 
-  const appId = env("SQUARE_APPLICATION_ID");
-  const locationId = env("SQUARE_LOCATION_ID");
-  const token = env("SQUARE_ACCESS_TOKEN");
-  const configure = Boolean(appId && locationId && token);
+  const merchantId = env("CLOVER_MERCHANT_ID");
+  const publicToken = env("CLOVER_PUBLIC_TOKEN");
+  const privateToken = env("CLOVER_PRIVATE_TOKEN");
+  const configure = Boolean(merchantId && publicToken && privateToken);
 
-  // Configuration publique pour le formulaire Square (aucun secret)
+  // Configuration publique pour le formulaire Clover (aucun secret)
   if (body.action === "config") {
     const from = await trouverExpediteur();
-    return json({ ok: true, configured: configure, emailFrom: from.replace(/^.*</, "").replace(">", ""), environment: squareEnv(), applicationId: configure ? appId : null, locationId: configure ? locationId : null, physicalFee: FRAIS_PHYSIQUE, min: MIN, max: MAX, presets: PRESETS });
+    return json({ ok: true, provider: "clover", configured: configure, emailFrom: from.replace(/^.*</, "").replace(">", ""), environment: payEnv(), publicToken: configure ? publicToken : null, merchantId: configure ? merchantId : null, physicalFee: FRAIS_PHYSIQUE, min: MIN, max: MAX, presets: PRESETS });
   }
 
   if (body.action !== "purchase") return json({ ok: false, error: "Action inconnue" }, 400);
@@ -224,43 +224,45 @@ Deno.serve(async (req) => {
   try { c = valider(body); } catch (e) { return json({ ok: false, error: (e as Error).message }, 400); }
 
   const sourceId = txt(body.sourceId, 400);
-  const idem = txt(body.idempotencyKey, 45) || crypto.randomUUID();
+  const idem = txt(body.idempotencyKey, 64) || crypto.randomUUID();
   if (!sourceId) return json({ ok: false, error: "Informations de paiement manquantes." }, 400);
 
   const total = c.amount + (c.physical ? FRAIS_PHYSIQUE : 0);
+  const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim();
 
-  // 1) Paiement Square — le montant est recalculé ici, jamais pris du navigateur
-  const sq = await fetch(`${squareBase()}/v2/payments`, {
+  // 1) Paiement Clover — le montant est recalculé ici, jamais pris du navigateur
+  const rep = await fetch(`${cloverBase()}/v1/charges`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", "Square-Version": "2025-01-23" },
+    headers: {
+      Authorization: `Bearer ${privateToken}`, "Content-Type": "application/json", Accept: "application/json",
+      "idempotency-key": idem, ...(ip ? { "x-forwarded-for": ip } : {}),
+    },
     body: JSON.stringify({
-      source_id: sourceId,
-      ...(body.verificationToken ? { verification_token: txt(body.verificationToken, 2000) } : {}),
-      idempotency_key: idem,
-      location_id: locationId,
-      amount_money: { amount: Math.round(total * 100), currency: "CAD" },
-      autocomplete: true,
-      buyer_email_address: c.buyerEmail,
-      note: `Carte cadeau ${argent(c.amount)} pour ${c.recipientName}${c.physical ? " + carte physique" : ""}`.slice(0, 500),
+      amount: Math.round(total * 100),
+      currency: "cad",
+      source: sourceId,
+      ecomind: "ecom",
+      receipt_email: c.buyerEmail,
+      description: `Carte cadeau ${argent(c.amount)} pour ${c.recipientName}${c.physical ? " + carte physique" : ""}`.slice(0, 120),
     }),
   });
-  const sqData = await sq.json().catch(() => ({}));
-  const payment = sqData?.payment;
-  if (!sq.ok || !payment || payment.status !== "COMPLETED") {
-    const err = sqData?.errors?.[0];
-    console.error("Square refusé", sq.status, JSON.stringify(sqData?.errors ?? sqData));
-    const msg = err?.code === "CARD_DECLINED" || err?.category === "PAYMENT_METHOD_ERROR"
+  const data = await rep.json().catch(() => ({}));
+  if (!rep.ok || !data?.id || data.paid !== true || (data.status && data.status !== "succeeded")) {
+    const err = data?.error ?? {};
+    console.error("Clover refusé", rep.status, JSON.stringify(data));
+    const msg = err.type === "card_error" || err.code === "card_declined" || rep.status === 402
       ? "Paiement refusé par votre institution financière. Vérifiez la carte ou essayez-en une autre."
       : "Le paiement n'a pas pu être complété. Aucun montant n'a été prélevé.";
-    return json({ ok: false, error: msg, detail: err?.code ?? null }, 402);
+    return json({ ok: false, error: msg, detail: err.code ?? err.decline_code ?? null }, 402);
   }
+  const payment = { id: String(data.id), receipt_url: (data.receipt_url as string | undefined) ?? undefined };
 
   // 2) Paiement réussi : créer la carte (code unique)
   const db = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
 
   // Même paiement déjà traité (double clic / nouvel essai) : renvoyer la carte existante
-  const { data: existante } = await db.from("gift_cards").select("id, code").eq("square_payment_id", payment.id).maybeSingle();
-  if (existante) return json({ ok: true, id: existante.id, recipientEmail: c.recipientEmail, amount: c.amount, total, environment: squareEnv() });
+  const { data: existante } = await db.from("gift_cards").select("id, code").eq("payment_id", payment.id).maybeSingle();
+  if (existante) return json({ ok: true, id: existante.id, recipientEmail: c.recipientEmail, amount: c.amount, total, environment: payEnv() });
 
   let ligne: { id: string; code: string } | null = null;
   let derniereErreur = "";
@@ -270,7 +272,7 @@ Deno.serve(async (req) => {
       code, amount: c.amount, balance: c.amount, physical: c.physical, physical_fee: c.physical ? FRAIS_PHYSIQUE : 0,
       total_charged: total, buyer_name: c.buyerName, buyer_email: c.buyerEmail, recipient_name: c.recipientName,
       recipient_email: c.recipientEmail, message: c.message || null, shipping_address: c.address,
-      square_payment_id: payment.id, square_receipt_url: payment.receipt_url ?? null, square_environment: squareEnv(),
+      payment_provider: "clover", payment_id: payment.id, receipt_url: payment.receipt_url ?? null, payment_environment: payEnv(),
     }).select("id, code").single();
     if (data) ligne = data;
     else derniereErreur = error?.message ?? "inconnue";
@@ -297,13 +299,13 @@ Deno.serve(async (req) => {
     maj.recipient_email_sent_at = maintenant();
   } catch (e) { courrielOkDest = false; console.error("Courriel destinataire", e); }
   try {
-    await envoyerCourriel(equipe, `Nouvelle carte cadeau : ${argent(c.amount)}${c.physical ? " + carte physique" : ""} — ${c.buyerName} → ${c.recipientName}${squareEnv() === "sandbox" ? " [TEST]" : ""}`,
+    await envoyerCourriel(equipe, `Nouvelle carte cadeau : ${argent(c.amount)}${c.physical ? " + carte physique" : ""} — ${c.buyerName} → ${c.recipientName}${payEnv() === "sandbox" ? " [TEST]" : ""}`,
       courrielEquipe(carte) + (courrielOkDest ? "" : "<p style='color:#b03122;font-weight:700'>⚠ Le courriel au destinataire n'a pas pu être envoyé : transmettez-lui le code manuellement.</p>"), c.buyerEmail);
     maj.team_notified_at = maintenant();
   } catch (e) { console.error("Courriel équipe", e); }
   if (Object.keys(maj).length) await db.from("gift_cards").update(maj).eq("id", ligne.id);
 
-  return json({ ok: true, id: ligne.id, recipientEmail: c.recipientEmail, amount: c.amount, total, emailSent: courrielOkDest, environment: squareEnv() });
+  return json({ ok: true, id: ligne.id, recipientEmail: c.recipientEmail, amount: c.amount, total, emailSent: courrielOkDest, environment: payEnv() });
 });
 
 

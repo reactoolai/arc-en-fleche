@@ -44,7 +44,7 @@ export default function CartesCadeauxAdmin() {
         {liste.map((c) => (
           <li key={c.id}>
             <div className="admin-info">
-              <strong><span style={{ fontFamily: "ui-monospace, Menlo, monospace", color: "var(--orange-2)" }}>{c.code}</span> · {STATUTS[c.status]}{c.square_environment === "sandbox" && " · TEST"}</strong>
+              <strong><span style={{ fontFamily: "ui-monospace, Menlo, monospace", color: "var(--orange-2)" }}>{c.code}</span> · {STATUTS[c.status]}{c.payment_environment === "sandbox" && " · TEST"}</strong>
               <small>{date(c.created_at)} · {c.buyer_name} → {c.recipient_name} ({c.recipient_email}){c.recipient_email_sent_at ? "" : " · courriel NON envoyé"}</small>
               {c.physical && (
                 <small>
