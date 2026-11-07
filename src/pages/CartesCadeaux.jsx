@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase.js";
 import { INFOS } from "../data/site.js";
 import CarteCadeau, { montantTxt } from "../components/CarteCadeau.jsx";
+import { ChampsClover, useChampsClover } from "../lib/clover.jsx";
 
 const PRESETS = [100, 200, 500, 1000];
 const FRAIS_PHYSIQUE = 40;
@@ -11,30 +12,6 @@ const MAX = 5000;
 const PROVINCES = ["QC", "ON", "NB", "NS", "PE", "NL", "MB", "SK", "AB", "BC", "YT", "NT", "NU"];
 const courrielOk = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s.trim());
 
-// Charge le SDK iFrame de Clover (production ou sandbox) une seule fois.
-// Les numéros de carte sont saisis dans des iFrames Clover : ils ne passent jamais par nos serveurs.
-let sdk = null;
-let instance = null;
-function chargerClover(environment) {
-  if (!sdk) {
-    sdk = new Promise((ok, ko) => {
-      if (window.Clover) return ok(window.Clover);
-      const s = document.createElement("script");
-      s.src = environment === "sandbox" ? "https://checkout.sandbox.dev.clover.com/sdk.js" : "https://checkout.clover.com/sdk.js";
-      s.onload = () => ok(window.Clover);
-      s.onerror = () => { sdk = null; ko(new Error("clover")); };
-      document.head.appendChild(s);
-    });
-  }
-  return sdk;
-}
-
-const STYLE_CLOVER = {
-  body: { fontFamily: "Barlow, system-ui, sans-serif" },
-  input: { fontSize: "16px", color: "#0d1410", padding: "0 14px", height: "48px" },
-  "input::placeholder": { color: "#a9b3ab" },
-};
-
 export default function CartesCadeaux() {
   const [choix, setChoix] = useState(200);
   const [perso, setPerso] = useState("");
@@ -42,10 +19,8 @@ export default function CartesCadeaux() {
   const [physique, setPhysique] = useState(false);
   const [adr, setAdr] = useState({ nom: "", rue: "", ville: "", province: "QC", codePostal: "" });
   const [config, setConfig] = useState(null);
-  const [pret, setPret] = useState(false);
   const [etat, setEtat] = useState({ envoi: false, msg: "" });
   const [fini, setFini] = useState(null);
-  const carteRef = useRef(null);
   const idem = useRef(crypto.randomUUID());
 
   const montant = choix === "perso" ? Math.floor(Number(perso) || 0) : choix;
@@ -68,34 +43,8 @@ export default function CartesCadeaux() {
     return () => { annule = true; };
   }, []);
 
-  // Champs de carte Clover (numéro, expiration, CVV, code postal)
-  useEffect(() => {
-    if (!config?.configured || fini) return;
-    let annule = false;
-    const ids = ["cc-num", "cc-date", "cc-cvv", "cc-postal"];
-    (async () => {
-      try {
-        const Clover = await chargerClover(config.environment);
-        if (annule) return;
-        if (!instance) instance = new Clover(config.publicToken, { merchantId: config.merchantId, locale: "fr-CA" });
-        const elements = instance.elements();
-        const types = ["CARD_NUMBER", "CARD_DATE", "CARD_CVV", "CARD_POSTAL_CODE"];
-        types.forEach((t, i) => {
-          const el = document.getElementById(ids[i]);
-          if (el) { el.innerHTML = ""; elements.create(t, STYLE_CLOVER).mount("#" + ids[i]); }
-        });
-        carteRef.current = instance;
-        setPret(true);
-      } catch (e) {
-        console.error(e);
-        if (!annule) setEtat({ envoi: false, msg: "Le formulaire de paiement n'a pas pu se charger. Rechargez la page ou appelez-nous." });
-      }
-    })();
-    return () => {
-      annule = true; setPret(false); carteRef.current = null;
-      ids.forEach((id) => { const el = document.getElementById(id); if (el) el.innerHTML = ""; });
-    };
-  }, [config, fini]);
+  const { pret, erreur: erreurClover, jeton } = useChampsClover(config, !fini, "cc");
+  useEffect(() => { if (erreurClover) setEtat({ envoi: false, msg: erreurClover }); }, [erreurClover]);
 
   const erreurForm = () => {
     if (!montant || montant < MIN || montant > MAX) return `Choisissez un montant entre ${MIN} $ et ${MAX} $.`;
@@ -112,15 +61,10 @@ export default function CartesCadeaux() {
     e.preventDefault();
     const err = erreurForm();
     if (err) { setEtat({ envoi: false, msg: err }); return; }
-    if (!carteRef.current) { setEtat({ envoi: false, msg: "Le paiement en ligne n'est pas disponible pour le moment." }); return; }
     setEtat({ envoi: true, msg: "" });
     try {
-      const t = await carteRef.current.createToken();
-      if (!t?.token) {
-        const premiere = t?.errors ? Object.values(t.errors).find(Boolean) : null;
-        setEtat({ envoi: false, msg: premiere ? `Vérifiez la carte : ${premiere}` : "Vérifiez les informations de la carte." });
-        return;
-      }
+      const t = await jeton();
+      if (!t.token) { setEtat({ envoi: false, msg: t.erreur }); return; }
       const { data, error } = await supabase.functions.invoke("gift-card", {
         body: {
           action: "purchase", sourceId: t.token, idempotencyKey: idem.current,
@@ -265,14 +209,7 @@ export default function CartesCadeaux() {
             {indisponible ? (
               <p className="alerte">Le paiement en ligne des cartes cadeaux sera activé sous peu. En attendant, appelez-nous au <a href={INFOS.telHref}>{INFOS.tel}</a> ou passez en boutique.</p>
             ) : (
-              <div className={`cc-paiement ${pret ? "" : "cc-paiement-charge"}`}>
-                <label className="cc-champ-l">Numéro de carte<div id="cc-num" className="cc-champ" /></label>
-                <div className="cc-paiement-3">
-                  <label className="cc-champ-l">Expiration<div id="cc-date" className="cc-champ" /></label>
-                  <label className="cc-champ-l">CVV<div id="cc-cvv" className="cc-champ" /></label>
-                  <label className="cc-champ-l">Code postal<div id="cc-postal" className="cc-champ" /></label>
-                </div>
-              </div>
+              <ChampsClover prefixe="cc" pret={pret} />
             )}
             <button className="btn btn-orange btn-plein btn-grand" disabled={etat.envoi || !pret}>
               {etat.envoi ? "Paiement en cours…" : `Payer ${montantTxt(total)}`}

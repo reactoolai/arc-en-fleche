@@ -68,7 +68,7 @@ export default function Compte() {
                   <span>{new Date(o.created_at).toLocaleDateString("fr-CA")}</span>
                   <span>{(o.items || []).length} article(s)</span>
                   <strong>{prix(o.total)}</strong>
-                  <em>{o.status === "pending" ? "En attente" : o.status === "completed" ? "Complétée" : o.status}</em>
+                  <em>{o.status === "pending" ? "En attente" : o.status === "paid" ? "Payée" : o.status === "completed" ? "Complétée" : o.status}</em>
                 </li>
               ))}
             </ul>
