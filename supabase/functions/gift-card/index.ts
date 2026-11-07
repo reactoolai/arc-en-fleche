@@ -325,3 +325,4 @@ Deno.serve(async (req) => {
   await base.from("gift_cards").update({ checkout_session_id: data.checkoutSessionId }).eq("id", g.id);
   return json({ ok: true, id: g.id, href: data.href });
 });
+

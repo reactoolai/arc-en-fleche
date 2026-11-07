@@ -1,9 +1,17 @@
 {
   "projectId": "69716345",
   "functions": {
+    "clover-webhook": {
+      "hasChanged": false,
+      "hash": "b9555e37128839d4e3069ab4d83713a3714896ca892df3c30b6ff69559309137"
+    },
     "gift-card": {
       "hasChanged": false,
-      "hash": "a3481c332073b63cb83c4c521e34ca4f3acf52baf16f9e8e40142d8ea04c4af5"
+      "hash": "f0d8885f704c6305558964f4e6e9344f09cf5ebd4dc5dd151c0608b45fb7cbca"
+    },
+    "shop-checkout": {
+      "hasChanged": false,
+      "hash": "65c88f654a92972d82b69d060e49588cfb1f096f8dfc6dab2c468d1e2a09a3fa"
     }
   }
 }
