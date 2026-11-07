@@ -3,3 +3,9 @@ verify_jwt = false
 
 [functions.gift-card]
 verify_jwt = false
+
+[functions.shop-checkout]
+verify_jwt = false
+
+[functions.clover-webhook]
+verify_jwt = false

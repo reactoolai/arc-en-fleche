@@ -848,3 +848,5 @@ blockquote { margin: 0 0 30px; font-family: var(--titre); font-size: clamp(24px,
 .cc-champ iframe { width: 100% !important; height: 48px !important; border: 0; }
 .cc-paiement-charge .cc-champ { background: transparent; }
 @media (max-width: 640px) { .cc-paiement-3 { grid-template-columns: 1fr 1fr; } .cc-paiement-3 label:last-child { grid-column: 1 / -1; } }
+.cc-sablier { width: 54px; height: 54px; border-radius: 50%; border: 4px solid var(--sable); border-top-color: var(--orange); animation: tourne 1s linear infinite; margin-bottom: 8px; }
+@keyframes tourne { to { transform: rotate(360deg); } }

@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase.js";
 import { INFOS } from "../data/site.js";
 import CarteCadeau, { montantTxt } from "../components/CarteCadeau.jsx";
-import { ChampsClover, useChampsClover } from "../lib/clover.jsx";
 
 const PRESETS = [100, 200, 500, 1000];
 const FRAIS_PHYSIQUE = 40;
@@ -34,7 +33,7 @@ export default function CartesCadeaux() {
     return () => { document.title = avant; };
   }, []);
 
-  // Configuration Clover (jeton public et Merchant ID servis par la fonction, le jeton privé reste dans les secrets)
+  // Configuration : le paiement est-il activé (secrets Clover présents) ?
   useEffect(() => {
     let annule = false;
     supabase.functions.invoke("gift-card", { body: { action: "config" } })
@@ -43,8 +42,32 @@ export default function CartesCadeaux() {
     return () => { annule = true; };
   }, []);
 
-  const { pret, erreur: erreurClover, jeton } = useChampsClover(config, !fini, "cc");
-  useEffect(() => { if (erreurClover) setEtat({ envoi: false, msg: erreurClover }); }, [erreurClover]);
+  // Retour de la page de paiement Clover : ?merci=<id> (attente du webhook), ?annule= / ?echec=
+  const [attente, setAttente] = useState(null);
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const id = q.get("merci");
+    if (q.get("annule")) setEtat({ envoi: false, msg: "Paiement annulé : aucun montant n'a été prélevé. Vous pouvez réessayer." });
+    if (q.get("echec")) setEtat({ envoi: false, msg: "Le paiement a été refusé : aucun montant n'a été prélevé. Vérifiez la carte ou essayez-en une autre." });
+    if (!id) return;
+    let essais = 0, fin = false;
+    setAttente({ id, longue: false });
+    const verifier = async () => {
+      if (fin) return;
+      essais++;
+      const { data } = await supabase.functions.invoke("gift-card", { body: { action: "status", id } }).catch(() => ({ data: null }));
+      if (data?.ok && data.status !== "pending" && data.status !== "failed" && (data.termine || essais > 10)) {
+        fin = true; setAttente(null);
+        setFini({ ...data });
+        window.history.replaceState({}, "", "/cartes-cadeaux/");
+        return;
+      }
+      if (essais === 15) setAttente({ id, longue: true });
+      setTimeout(verifier, essais < 15 ? 2000 : 5000);
+    };
+    verifier();
+    return () => { fin = true; };
+  }, []);
 
   const erreurForm = () => {
     if (!montant || montant < MIN || montant > MAX) return `Choisissez un montant entre ${MIN} $ et ${MAX} $.`;
@@ -63,30 +86,30 @@ export default function CartesCadeaux() {
     if (err) { setEtat({ envoi: false, msg: err }); return; }
     setEtat({ envoi: true, msg: "" });
     try {
-      const t = await jeton();
-      if (!t.token) { setEtat({ envoi: false, msg: t.erreur }); return; }
       const { data, error } = await supabase.functions.invoke("gift-card", {
-        body: {
-          action: "purchase", sourceId: t.token, idempotencyKey: idem.current,
-          amount: montant, ...f, physical: physique,
-          address: physique ? { ...adr, nom: adr.nom || f.recipientName } : null,
-        },
+        body: { action: "checkout", amount: montant, ...f, physical: physique, address: physique ? { ...adr, nom: adr.nom || f.recipientName } : null },
       });
       let res = data;
       if (error && error.context?.json) res = await error.context.json().catch(() => null);
-      if (!res?.ok) {
-        // Un paiement refusé peut être réessayé : nouvelle clé d'idempotence
-        if (!res?.paid) idem.current = crypto.randomUUID();
-        setEtat({ envoi: false, msg: res?.error || "Le paiement n'a pas pu être complété. Aucun montant n'a été prélevé." });
-        return;
-      }
-      setFini({ ...res, recipientName: f.recipientName, buyerName: f.buyerName, physique });
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (!res?.ok || !res.href) { setEtat({ envoi: false, msg: res?.error || "La page de paiement n'a pas pu s'ouvrir. Réessayez." }); return; }
+      window.location.assign(res.href); // page de paiement sécurisée Clover
     } catch (e2) {
       console.error(e2);
       setEtat({ envoi: false, msg: "Une erreur est survenue. Réessayez ou appelez-nous au " + INFOS.tel + "." });
     }
   };
+
+  if (attente) {
+    return (
+      <div className="conteneur section vide-boite cc-attente">
+        <div className="cc-sablier" aria-hidden="true" />
+        <h1>Confirmation du paiement…</h1>
+        <p>{attente.longue
+          ? "La confirmation de Clover prend plus de temps que prévu. Si votre paiement est accepté, la carte sera envoyée automatiquement dès sa réception : vous pouvez fermer cette page."
+          : "Nous attendons la confirmation de Clover. La carte sera envoyée dès que le paiement est confirmé."}</p>
+      </div>
+    );
+  }
 
   if (fini) {
     return (
@@ -98,7 +121,7 @@ export default function CartesCadeaux() {
           <p className="txt">
             {fini.emailSent === false
               ? <>La carte de <strong>{montantTxt(fini.amount)}</strong> est créée. Le courriel à {fini.recipientEmail} a eu un problème ; notre équipe lui transmettra le code rapidement.</>
-              : <>La carte cadeau de <strong>{montantTxt(fini.amount)}</strong> vient d'être envoyée à <strong>{fini.recipientEmail}</strong> avec votre message et son code unique.</>}
+              : <>Paiement confirmé par Clover : la carte cadeau de <strong>{montantTxt(fini.amount)}</strong> vient d'être envoyée à <strong>{fini.recipientEmail}</strong> avec votre message et son code unique.</>}
             {fini.physique && <> La carte physique partira par la poste dans les prochains jours ouvrables.</>}
           </p>
           <p className="petit">Total payé : {montantTxt(fini.total)}. Un reçu Clover vous est envoyé par courriel.{fini.environment === "sandbox" && " (Mode test : aucun montant réel prélevé.)"}</p>
@@ -203,19 +226,14 @@ export default function CartesCadeaux() {
               {physique && <div className="resume-ligne"><span>Carte physique et envoi postal</span><span>{montantTxt(FRAIS_PHYSIQUE)}</span></div>}
               <div className="resume-ligne resume-total"><span>Total</span><strong>{montantTxt(total)}</strong></div>
             </div>
-            {config?.environment === "sandbox" && config?.configured && (
-              <p className="alerte cc-test">Mode test Clover (sandbox) : utilisez la carte 4005 5717 0222 2222, une date future, CVV 123 et un code postal valide.</p>
-            )}
-            {indisponible ? (
+            {indisponible && (
               <p className="alerte">Le paiement en ligne des cartes cadeaux sera activé sous peu. En attendant, appelez-nous au <a href={INFOS.telHref}>{INFOS.tel}</a> ou passez en boutique.</p>
-            ) : (
-              <ChampsClover prefixe="cc" pret={pret} />
             )}
-            <button className="btn btn-orange btn-plein btn-grand" disabled={etat.envoi || !pret}>
-              {etat.envoi ? "Paiement en cours…" : `Payer ${montantTxt(total)}`}
+            <button className="btn btn-orange btn-plein btn-grand" disabled={etat.envoi || !config?.configured}>
+              {etat.envoi ? "Ouverture du paiement Clover…" : `Payer ${montantTxt(total)}`}
             </button>
             {etat.msg && <div className="alerte" role="alert">{etat.msg}</div>}
-            <p className="petit cc-securite">Paiement traité par Clover, le même système que notre caisse en boutique. Vos informations de carte ne transitent jamais par nos serveurs.</p>
+            <p className="petit cc-securite">Vous serez dirigé vers la page de paiement sécurisée de Clover, le même système que notre caisse en boutique. La carte est envoyée seulement après la confirmation du paiement.</p>
           </fieldset>
         </form>
       </section>

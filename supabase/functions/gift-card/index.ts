@@ -3,8 +3,12 @@
 // Secrets (Bolt › Database › Secrets) — aucune clé n'est écrite dans le code :
 //   CLOVER_ENVIRONMENT      "production" (défaut) ou "sandbox"
 //   CLOVER_MERCHANT_ID      Merchant ID Clover (13 caractères)
-//   CLOVER_PUBLIC_TOKEN     Jeton public e-commerce (iFrame) — envoyé au navigateur
-//   CLOVER_PRIVATE_TOKEN    Jeton privé e-commerce (secret, encaissement)
+//   CLOVER_PRIVATE_TOKEN    Jeton privé e-commerce (secret) — crée les sessions Hosted Checkout
+//   CLOVER_WEBHOOK_SECRET   Secret de signature du webhook (utilisé par la fonction clover-webhook)
+//
+// Parcours : « Payer » → carte enregistrée « pending » → page de paiement Clover (Hosted Checkout)
+// → webhook Clover signé (fonction clover-webhook) → action « finalize » ici : code unique + courriels.
+// Rien n'est envoyé tant que Clover n'a pas confirmé le paiement.
 //   RESEND_API_KEY          Déjà utilisé par la fonction send-email
 //   GIFT_EMAIL_FROM         (facultatif) Expéditeur ; sinon premier domaine vérifié chez Resend
 //   GIFT_TEAM_EMAIL         Courriel(s) de l'équipe, séparés par des virgules (défaut : info@arcenfleche.com)
@@ -29,7 +33,7 @@ const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json" } });
 
 const payEnv = () => (env("CLOVER_ENVIRONMENT", "production").toLowerCase() === "sandbox" ? "sandbox" : "production");
-const cloverBase = () => (payEnv() === "sandbox" ? "https://scl-sandbox.dev.clover.com" : "https://scl.clover.com");
+const cloverApi = () => (payEnv() === "sandbox" ? "https://apisandbox.dev.clover.com" : "https://api.clover.com");
 const siteUrl = () => env("SITE_URL", "https://arcenfleche.com").replace(/\/$/, "");
 
 const esc = (s: unknown) =>
@@ -199,6 +203,55 @@ ${ligne("Paiement Clover", `${esc(c.paymentId)}${c.receiptUrl ? ` · <a href="${
 
 /* ---------------- Handler ---------------- */
 
+const db = () => createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
+
+// Finalisation (appelée seulement par clover-webhook, après vérification de la signature Clover)
+async function finaliser(id: string, paymentId: string) {
+  const base = db();
+  const { data: g } = await base.from("gift_cards").select("*").eq("id", id).maybeSingle();
+  if (!g) return json({ ok: false, error: "Carte introuvable" }, 404);
+  if (g.status !== "pending") return json({ ok: true, deja: true, status: g.status });
+
+  let code = "";
+  let derniereErreur = "";
+  for (let i = 0; i < 6 && !code; i++) {
+    const essai = genererCode();
+    const { error } = await base.from("gift_cards").update({
+      code: essai, status: "active", payment_id: paymentId, paid_at: new Date().toISOString(),
+    }).eq("id", id).eq("status", "pending");
+    if (!error) code = essai;
+    else { derniereErreur = error.message; if (error.code !== "23505") break; }
+  }
+
+  const c = {
+    amount: Number(g.amount), recipientName: g.recipient_name, recipientEmail: g.recipient_email, buyerName: g.buyer_name,
+    buyerEmail: g.buyer_email, message: g.message ?? "", physical: g.physical, address: g.shipping_address,
+  } as ReturnType<typeof valider>;
+  const carte: Carte = { ...c, code, total: Number(g.total_charged), paymentId };
+  const equipe = env("GIFT_TEAM_EMAIL", "info@arcenfleche.com").split(",").map((x) => x.trim()).filter(Boolean);
+
+  if (!code) {
+    console.error("Code non généré", derniereErreur);
+    await envoyerCourriel(equipe, `⚠ Carte cadeau payée mais code NON généré — ${argent(c.amount)} — ${c.buyerName}`,
+      courrielEquipe({ ...carte, code: "NON GÉNÉRÉ — à créer manuellement" }) + `<p>Erreur : ${esc(derniereErreur)}</p>`).catch(console.error);
+    return json({ ok: false, error: derniereErreur }, 500);
+  }
+
+  const maj: Record<string, string> = {};
+  let okDest = true;
+  try {
+    await envoyerCourriel([c.recipientEmail], `${c.buyerName} vous offre une carte cadeau Arc En Flèche de ${argent(c.amount)}`, courrielDestinataire(carte), c.buyerEmail);
+    maj.recipient_email_sent_at = new Date().toISOString();
+  } catch (e) { okDest = false; console.error("Courriel destinataire", e); }
+  try {
+    await envoyerCourriel(equipe, `Nouvelle carte cadeau : ${argent(c.amount)}${c.physical ? " + carte physique" : ""} — ${c.buyerName} → ${c.recipientName}${payEnv() === "sandbox" ? " [TEST]" : ""}`,
+      courrielEquipe(carte) + (okDest ? "" : "<p style='color:#b03122;font-weight:700'>⚠ Le courriel au destinataire n'a pas pu être envoyé : transmettez-lui le code manuellement.</p>"), c.buyerEmail);
+    maj.team_notified_at = new Date().toISOString();
+  } catch (e) { console.error("Courriel équipe", e); }
+  if (Object.keys(maj).length) await base.from("gift_cards").update(maj).eq("id", id);
+  return json({ ok: true, code: "généré", emailSent: okDest });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ ok: false, error: "Méthode non permise" }, 405);
@@ -207,106 +260,68 @@ Deno.serve(async (req) => {
   try { body = await req.json(); } catch { return json({ ok: false, error: "Requête invalide" }, 400); }
 
   const merchantId = env("CLOVER_MERCHANT_ID");
-  const publicToken = env("CLOVER_PUBLIC_TOKEN");
   const privateToken = env("CLOVER_PRIVATE_TOKEN");
-  const configure = Boolean(merchantId && publicToken && privateToken);
+  const configure = Boolean(merchantId && privateToken);
 
-  // Configuration publique pour le formulaire Clover (aucun secret)
   if (body.action === "config") {
     const from = await trouverExpediteur();
-    return json({ ok: true, provider: "clover", configured: configure, emailFrom: from.replace(/^.*</, "").replace(">", ""), environment: payEnv(), publicToken: configure ? publicToken : null, merchantId: configure ? merchantId : null, physicalFee: FRAIS_PHYSIQUE, min: MIN, max: MAX, presets: PRESETS });
+    return json({ ok: true, provider: "clover-hosted", configured: configure, webhook: Boolean(env("CLOVER_WEBHOOK_SECRET")), emailFrom: from.replace(/^.*</, "").replace(">", ""), environment: payEnv(), physicalFee: FRAIS_PHYSIQUE, min: MIN, max: MAX, presets: PRESETS });
   }
 
-  if (body.action !== "purchase") return json({ ok: false, error: "Action inconnue" }, 400);
+  // Appel interne du webhook (clé service_role exigée)
+  if (body.action === "finalize") {
+    if (req.headers.get("x-internal-key") !== env("SUPABASE_SERVICE_ROLE_KEY")) return json({ ok: false, error: "Interdit" }, 403);
+    return finaliser(txt(body.id, 40), txt(body.paymentId, 80));
+  }
+
+  // État d'une carte pour la page de confirmation (aucune donnée sensible, pas de code)
+  if (body.action === "status") {
+    const { data: g } = await db().from("gift_cards").select("status, amount, total_charged, recipient_email, recipient_name, buyer_name, physical, recipient_email_sent_at, team_notified_at, payment_environment").eq("id", txt(body.id, 40)).maybeSingle();
+    if (!g) return json({ ok: false, error: "Introuvable" }, 404);
+    return json({ ok: true, status: g.status, amount: Number(g.amount), total: Number(g.total_charged), recipientEmail: g.recipient_email, recipientName: g.recipient_name, buyerName: g.buyer_name, physique: g.physical, emailSent: Boolean(g.recipient_email_sent_at), termine: Boolean(g.recipient_email_sent_at || g.team_notified_at), environment: g.payment_environment });
+  }
+
+  if (body.action !== "checkout") return json({ ok: false, error: "Action inconnue" }, 400);
   if (!configure) return json({ ok: false, error: "Le paiement en ligne n'est pas encore activé. Appelez-nous au 418 343-3301." }, 503);
 
   let c: ReturnType<typeof valider>;
   try { c = valider(body); } catch (e) { return json({ ok: false, error: (e as Error).message }, 400); }
-
-  const sourceId = txt(body.sourceId, 400);
-  const idem = txt(body.idempotencyKey, 64) || crypto.randomUUID();
-  if (!sourceId) return json({ ok: false, error: "Informations de paiement manquantes." }, 400);
-
   const total = c.amount + (c.physical ? FRAIS_PHYSIQUE : 0);
-  const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim();
 
-  // 1) Paiement Clover — le montant est recalculé ici, jamais pris du navigateur
-  const rep = await fetch(`${cloverBase()}/v1/charges`, {
+  // 1) Carte enregistrée « en attente de paiement » (sans code)
+  const base = db();
+  const { data: g, error } = await base.from("gift_cards").insert({
+    status: "pending", amount: c.amount, balance: c.amount, physical: c.physical, physical_fee: c.physical ? FRAIS_PHYSIQUE : 0,
+    total_charged: total, buyer_name: c.buyerName, buyer_email: c.buyerEmail, recipient_name: c.recipientName,
+    recipient_email: c.recipientEmail, message: c.message || null, shipping_address: c.address,
+    payment_provider: "clover", payment_environment: payEnv(),
+  }).select("id").single();
+  if (error || !g) { console.error("Insertion pending", error); return json({ ok: false, error: "Impossible de préparer le paiement, réessayez." }, 500); }
+
+  // 2) Session de paiement Clover (Hosted Checkout) — montants fixés ici, jamais par le navigateur
+  const site = siteUrl();
+  const [prenom, ...reste] = c.buyerName.split(" ");
+  const lineItems = [{ name: `Carte cadeau Arc En Flèche ${argent(c.amount)} — pour ${c.recipientName}`.slice(0, 127), price: Math.round(c.amount * 100), unitQty: 1 }];
+  if (c.physical) lineItems.push({ name: "Carte physique et envoi postal", price: FRAIS_PHYSIQUE * 100, unitQty: 1 });
+  const rep = await fetch(`${cloverApi()}/invoicingcheckoutservice/v1/checkouts`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${privateToken}`, "Content-Type": "application/json", Accept: "application/json",
-      "idempotency-key": idem, ...(ip ? { "x-forwarded-for": ip } : {}),
-    },
+    headers: { Authorization: `Bearer ${privateToken}`, "X-Clover-Merchant-Id": merchantId, "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({
-      amount: Math.round(total * 100),
-      currency: "cad",
-      source: sourceId,
-      ecomind: "ecom",
-      receipt_email: c.buyerEmail,
-      description: `Carte cadeau ${argent(c.amount)} pour ${c.recipientName}${c.physical ? " + carte physique" : ""}`.slice(0, 120),
+      customer: { email: c.buyerEmail, firstName: prenom, lastName: reste.join(" ") || prenom },
+      shoppingCart: { lineItems },
+      redirectUrls: {
+        success: `${site}/cartes-cadeaux/?merci=${g.id}`,
+        failure: `${site}/cartes-cadeaux/?echec=${g.id}`,
+        cancel: `${site}/cartes-cadeaux/?annule=${g.id}`,
+      },
     }),
   });
   const data = await rep.json().catch(() => ({}));
-  if (!rep.ok || !data?.id || data.paid !== true || (data.status && data.status !== "succeeded")) {
-    const err = data?.error ?? {};
-    console.error("Clover refusé", rep.status, JSON.stringify(data));
-    const msg = err.type === "card_error" || err.code === "card_declined" || rep.status === 402
-      ? "Paiement refusé par votre institution financière. Vérifiez la carte ou essayez-en une autre."
-      : "Le paiement n'a pas pu être complété. Aucun montant n'a été prélevé.";
-    return json({ ok: false, error: msg, detail: err.code ?? err.decline_code ?? null }, 402);
+  if (!rep.ok || !data?.href || !data?.checkoutSessionId) {
+    console.error("Clover checkout refusé", rep.status, JSON.stringify(data));
+    await base.from("gift_cards").update({ status: "failed" }).eq("id", g.id);
+    return json({ ok: false, error: "La page de paiement Clover n'a pas pu s'ouvrir. Réessayez ou appelez-nous au 418 343-3301.", detail: rep.status }, 502);
   }
-  const payment = { id: String(data.id), receipt_url: (data.receipt_url as string | undefined) ?? undefined };
-
-  // 2) Paiement réussi : créer la carte (code unique)
-  const db = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
-
-  // Même paiement déjà traité (double clic / nouvel essai) : renvoyer la carte existante
-  const { data: existante } = await db.from("gift_cards").select("id, code").eq("payment_id", payment.id).maybeSingle();
-  if (existante) return json({ ok: true, id: existante.id, recipientEmail: c.recipientEmail, amount: c.amount, total, environment: payEnv() });
-
-  let ligne: { id: string; code: string } | null = null;
-  let derniereErreur = "";
-  for (let i = 0; i < 6 && !ligne; i++) {
-    const code = genererCode();
-    const { data, error } = await db.from("gift_cards").insert({
-      code, amount: c.amount, balance: c.amount, physical: c.physical, physical_fee: c.physical ? FRAIS_PHYSIQUE : 0,
-      total_charged: total, buyer_name: c.buyerName, buyer_email: c.buyerEmail, recipient_name: c.recipientName,
-      recipient_email: c.recipientEmail, message: c.message || null, shipping_address: c.address,
-      payment_provider: "clover", payment_id: payment.id, receipt_url: payment.receipt_url ?? null, payment_environment: payEnv(),
-    }).select("id, code").single();
-    if (data) ligne = data;
-    else derniereErreur = error?.message ?? "inconnue";
-    if (error && error.code !== "23505") break;
-  }
-
-  const carte: Carte = { ...c, code: ligne?.code ?? "", total, receiptUrl: payment.receipt_url, paymentId: payment.id };
-  const equipe = env("GIFT_TEAM_EMAIL", "info@arcenfleche.com").split(",").map((s) => s.trim()).filter(Boolean);
-
-  if (!ligne) {
-    // Le client a payé mais la carte n'a pas pu être enregistrée : alerter l'équipe immédiatement.
-    console.error("Insertion gift_cards échouée", derniereErreur);
-    await envoyerCourriel(equipe, `⚠ Carte cadeau payée mais NON créée — ${argent(c.amount)} — ${c.buyerName}`,
-      courrielEquipe({ ...carte, code: "NON GÉNÉRÉ — à créer manuellement" }) + `<p>Erreur : ${esc(derniereErreur)}</p>`).catch(console.error);
-    return json({ ok: false, paid: true, error: "Votre paiement est accepté, mais la carte n'a pas pu être générée. Notre équipe a été avisée et vous contactera rapidement." }, 500);
-  }
-
-  // 3) Courriels (destinataire puis équipe)
-  const maintenant = () => new Date().toISOString();
-  const maj: Record<string, string> = {};
-  let courrielOkDest = true;
-  try {
-    await envoyerCourriel([c.recipientEmail], `${c.buyerName} vous offre une carte cadeau Arc En Flèche de ${argent(c.amount)}`, courrielDestinataire(carte), c.buyerEmail);
-    maj.recipient_email_sent_at = maintenant();
-  } catch (e) { courrielOkDest = false; console.error("Courriel destinataire", e); }
-  try {
-    await envoyerCourriel(equipe, `Nouvelle carte cadeau : ${argent(c.amount)}${c.physical ? " + carte physique" : ""} — ${c.buyerName} → ${c.recipientName}${payEnv() === "sandbox" ? " [TEST]" : ""}`,
-      courrielEquipe(carte) + (courrielOkDest ? "" : "<p style='color:#b03122;font-weight:700'>⚠ Le courriel au destinataire n'a pas pu être envoyé : transmettez-lui le code manuellement.</p>"), c.buyerEmail);
-    maj.team_notified_at = maintenant();
-  } catch (e) { console.error("Courriel équipe", e); }
-  if (Object.keys(maj).length) await db.from("gift_cards").update(maj).eq("id", ligne.id);
-
-  return json({ ok: true, id: ligne.id, recipientEmail: c.recipientEmail, amount: c.amount, total, emailSent: courrielOkDest, environment: payEnv() });
+  await base.from("gift_cards").update({ checkout_session_id: data.checkoutSessionId }).eq("id", g.id);
+  return json({ ok: true, id: g.id, href: data.href });
 });
-
-
-
