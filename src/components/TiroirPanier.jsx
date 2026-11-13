@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { lignesPanier, useCart, useCatalog } from "../lib/store.jsx";
-import { LIVRAISON } from "../data/site.js";
+import { BOUTIQUE_EN_LIGNE, INFOS, LIVRAISON } from "../data/site.js";
 import { prix } from "../lib/format.js";
 import { Fermer, Moins, Plus } from "./Icons.jsx";
 import { PhotoProduit } from "./Produit.jsx";
@@ -72,7 +72,14 @@ export default function TiroirPanier() {
             </ul>
             <div className="tiroir-pied">
               <div className="tiroir-total"><span>Sous-total</span><strong>{prix(sousTotal)}</strong></div>
-              <Link to="/panier" className="btn btn-orange btn-plein">Passer la commande</Link>
+              {BOUTIQUE_EN_LIGNE ? (
+                <Link to="/panier" className="btn btn-orange btn-plein">Passer la commande</Link>
+              ) : (
+                <div className="boutique-bientot boutique-bientot-petit">
+                  <strong>La boutique en ligne sera bientôt prête</strong>
+                  <p>Appelez-nous au <a href={INFOS.telHref}>{INFOS.tel}</a> ou passez en boutique : on vous réserve vos articles.</p>
+                </div>
+              )}
               <button className="lien-discret" onClick={() => setOuvert(false)}>Continuer à magasiner</button>
             </div>
           </>

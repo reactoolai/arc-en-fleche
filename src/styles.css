@@ -850,3 +850,47 @@ blockquote { margin: 0 0 30px; font-family: var(--titre); font-size: clamp(24px,
 @media (max-width: 640px) { .cc-paiement-3 { grid-template-columns: 1fr 1fr; } .cc-paiement-3 label:last-child { grid-column: 1 / -1; } }
 .cc-sablier { width: 54px; height: 54px; border-radius: 50%; border: 4px solid var(--sable); border-top-color: var(--orange); animation: tourne 1s linear infinite; margin-bottom: 8px; }
 @keyframes tourne { to { transform: rotate(360deg); } }
+/* Boutique en ligne bientôt prête */
+.boutique-bientot { display: grid; gap: 10px; padding: 18px; border-radius: 12px; background: rgb(255 106 26 / .08); border: 1.5px dashed var(--orange); }
+.boutique-bientot strong { font-family: var(--cond); font-weight: 700; font-size: 18px; letter-spacing: .06em; text-transform: uppercase; }
+.boutique-bientot p { margin: 0; font-size: 15px; color: #4a544d; }
+.boutique-bientot a:not(.btn) { color: var(--orange-2); font-weight: 600; }
+.boutique-bientot-petit { padding: 14px; }
+.boutique-bientot-petit strong { font-size: 16px; }
+/* Admin : utilisation des cartes cadeaux */
+.cca-encaisser { display: grid; grid-template-columns: 1fr minmax(0, 1.1fr); gap: 16px; align-items: center; background: var(--encre); color: var(--os); border-radius: var(--rayon); padding: 20px 22px; margin: 8px 0 18px; }
+.cca-encaisser strong { display: block; font-family: var(--cond); font-weight: 700; font-size: 20px; letter-spacing: .06em; text-transform: uppercase; }
+.cca-encaisser small { color: var(--gris-clair); font-size: 14px; }
+.cca-encaisser input { font-family: ui-monospace, Menlo, monospace; letter-spacing: .1em; text-transform: uppercase; padding: 14px 16px; border-radius: 10px; border: 1.5px solid transparent; background: #fff; color: var(--encre); }
+.cca-encaisser input:focus { outline: none; border-color: var(--orange); }
+.cca-code { font-family: ui-monospace, Menlo, monospace; color: var(--orange-2); letter-spacing: .04em; }
+.cca-code-grand { font-size: 22px; font-weight: 700; display: block; }
+.cca-fiche { position: relative; background: #fff; border: 2px solid var(--orange); border-radius: var(--rayon); padding: 22px; margin-bottom: 26px; display: grid; gap: 16px; box-shadow: var(--ombre); }
+.cca-fermer { position: absolute; top: 10px; right: 10px; font-size: 26px; color: var(--gris); }
+.cca-fermer:hover { background: var(--os); }
+.cca-entete { display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; padding-right: 36px; }
+.cca-entete small { color: var(--gris); font-size: 14px; }
+.cca-solde { text-align: right; display: grid; }
+.cca-solde span { font-family: var(--cond); font-weight: 700; font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: var(--ecorce); }
+.cca-solde strong { font-family: var(--titre); font-weight: 900; font-size: 52px; line-height: 1; }
+.cca-solde small { color: var(--gris); }
+.cca-calcul { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-radius: 10px; background: #e1f3e6; color: #1d6b3a; font-family: var(--cond); font-size: 18px; }
+.cca-calcul strong { font-family: var(--titre); font-size: 26px; }
+.cca-calcul-depasse { background: #fbe4df; color: #9b2c1f; }
+.cca-titre { font-size: 24px; margin: 8px 0 12px; }
+.cca-titre-hist { font-family: var(--cond); font-weight: 700; font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: var(--ecorce); margin: 4px 0 0; }
+.cca-hist { list-style: none; padding: 0; margin: 0; display: grid; }
+.cca-hist li { display: grid; grid-template-columns: 1fr auto auto; gap: 14px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid #f0ebe1; font-size: 14px; }
+.cca-hist li:last-child { border-bottom: 0; }
+.cca-hist span { color: #4a544d; }
+.cca-hist strong { font-family: var(--cond); font-size: 17px; color: #9b2c1f; }
+.cca-hist strong.cca-corr { color: #1d6b3a; }
+.cca-hist em { font-style: normal; color: var(--gris); font-size: 13px; min-width: 90px; text-align: right; }
+.cca-correction { padding-top: 6px; border-top: 1px dashed var(--ligne); }
+.cca-choisie { border-color: var(--orange) !important; }
+@media (max-width: 760px) {
+  .cca-encaisser { grid-template-columns: 1fr; }
+  .cca-solde { text-align: left; }
+  .cca-hist li { grid-template-columns: 1fr auto; }
+  .cca-hist em { grid-column: 2; }
+}

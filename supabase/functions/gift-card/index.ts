@@ -26,7 +26,7 @@ const CORS = {
 const PRESETS = [100, 200, 500, 1000];
 const MIN = 25;
 const MAX = 5000;
-const FRAIS_PHYSIQUE = 40;
+const FRAIS_PHYSIQUE = 5.99;
 
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const json = (body: unknown, status = 200) =>
@@ -191,7 +191,7 @@ function courrielEquipe(c: Carte) {
 <tr><td style="padding:20px 28px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">
 ${ligne("Code", `<span style="font-family:'Courier New',monospace;color:#e5550a">${esc(c.code)}</span>`)}
 ${ligne("Montant de la carte", argent(c.amount))}
-${ligne("Total payé", argent(c.total) + (c.physical ? ` (dont ${FRAIS_PHYSIQUE} $ carte physique)` : ""))}
+${ligne("Total payé", argent(c.total) + (c.physical ? ` (dont ${argent(FRAIS_PHYSIQUE)} carte physique)` : ""))}
 ${ligne("Acheteur", `${esc(c.buyerName)}<br><a href="mailto:${esc(c.buyerEmail)}">${esc(c.buyerEmail)}</a>`)}
 ${ligne("Destinataire", `${esc(c.recipientName)}<br><a href="mailto:${esc(c.recipientEmail)}">${esc(c.recipientEmail)}</a>`)}
 ${ligne("Livraison", c.physical ? "Courriel + <strong>carte physique par la poste</strong>" : "Courriel seulement")}
@@ -286,7 +286,7 @@ Deno.serve(async (req) => {
 
   let c: ReturnType<typeof valider>;
   try { c = valider(body); } catch (e) { return json({ ok: false, error: (e as Error).message }, 400); }
-  const total = c.amount + (c.physical ? FRAIS_PHYSIQUE : 0);
+  const total = Math.round((c.amount + (c.physical ? FRAIS_PHYSIQUE : 0)) * 100) / 100;
 
   // 1) Carte enregistrée « en attente de paiement » (sans code)
   const base = db();
@@ -302,7 +302,7 @@ Deno.serve(async (req) => {
   const site = siteUrl();
   const [prenom, ...reste] = c.buyerName.split(" ");
   const lineItems = [{ name: `Carte cadeau Arc En Flèche ${argent(c.amount)} — pour ${c.recipientName}`.slice(0, 127), price: Math.round(c.amount * 100), unitQty: 1 }];
-  if (c.physical) lineItems.push({ name: "Carte physique et envoi postal", price: FRAIS_PHYSIQUE * 100, unitQty: 1 });
+  if (c.physical) lineItems.push({ name: "Carte physique et envoi postal", price: Math.round(FRAIS_PHYSIQUE * 100), unitQty: 1 });
   const rep = await fetch(`${cloverApi()}/invoicingcheckoutservice/v1/checkouts`, {
     method: "POST",
     headers: { Authorization: `Bearer ${privateToken}`, "X-Clover-Merchant-Id": merchantId, "Content-Type": "application/json", Accept: "application/json" },

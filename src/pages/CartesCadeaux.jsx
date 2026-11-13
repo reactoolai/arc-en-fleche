@@ -5,7 +5,7 @@ import { INFOS } from "../data/site.js";
 import CarteCadeau, { montantTxt } from "../components/CarteCadeau.jsx";
 
 const PRESETS = [100, 200, 500, 1000];
-const FRAIS_PHYSIQUE = 40;
+const FRAIS_PHYSIQUE = 5.99;
 const MIN = 25;
 const MAX = 5000;
 const PROVINCES = ["QC", "ON", "NB", "NS", "PE", "NL", "MB", "SK", "AB", "BC", "YT", "NT", "NU"];
@@ -204,7 +204,7 @@ export default function CartesCadeaux() {
             <legend><em>4</em> Livraison</legend>
             <div className="choix-mode">
               <label className={!physique ? "actif" : ""}><input type="radio" checked={!physique} onChange={() => setPhysique(false)} /> <span><strong>Par courriel</strong><small>Inclus · envoyée immédiatement</small></span></label>
-              <label className={physique ? "actif" : ""}><input type="radio" checked={physique} onChange={() => setPhysique(true)} /> <span><strong>Courriel + carte physique</strong><small>+{FRAIS_PHYSIQUE} $ · envoyée par la poste</small></span></label>
+              <label className={physique ? "actif" : ""}><input type="radio" checked={physique} onChange={() => setPhysique(true)} /> <span><strong>Courriel + carte physique</strong><small>+{montantTxt(FRAIS_PHYSIQUE)} · envoyée par la poste</small></span></label>
             </div>
             {physique && (
               <div className="cc-adresse">

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { lignesPanier, useAuth, useCart, useCatalog } from "../lib/store.jsx";
 import { supabase } from "../lib/supabase.js";
-import { INFOS, LIVRAISON } from "../data/site.js";
+import { BOUTIQUE_EN_LIGNE, INFOS, LIVRAISON } from "../data/site.js";
 import { useContenu } from "../lib/contenu.jsx";
 import { prix } from "../lib/format.js";
 import { PhotoProduit } from "../components/Produit.jsx";
@@ -33,7 +33,7 @@ export default function Panier() {
       .catch(() => { if (!annule) setConfig({ configured: false }); });
     return () => { annule = true; };
   }, []);
-  const enLigne = !!config?.configured;
+  const enLigne = BOUTIQUE_EN_LIGNE && !!config?.configured;
   const base = r2(r2(lignes.reduce((t, l) => t + r2(l.p.prix * l.q), 0)) + frais);
   const tps = enLigne ? r2(base * TPS) : 0;
   const tvq = enLigne ? r2(base * TVQ) : 0;
@@ -183,8 +183,14 @@ export default function Panier() {
             {enLigne && <div className="resume-ligne"><span>TPS (5 %)</span><span>{prix(tps)}</span></div>}
             {enLigne && <div className="resume-ligne"><span>TVQ (9,975 %)</span><span>{prix(tvq)}</span></div>}
             <div className="resume-ligne resume-total"><span>Total</span><strong>{prix(total)}</strong></div>
-            <p className="petit">{enLigne ? "Taxes incluses. Paiement sur la page sécurisée de Clover, le même système que notre caisse en boutique." : "Taxes applicables en sus. Paiement et disponibilité confirmés par téléphone."}</p>
-            {!form ? (
+            {BOUTIQUE_EN_LIGNE && <p className="petit">{enLigne ? "Taxes incluses. Paiement sur la page sécurisée de Clover, le même système que notre caisse en boutique." : "Taxes applicables en sus. Paiement et disponibilité confirmés par téléphone."}</p>}
+            {!BOUTIQUE_EN_LIGNE ? (
+              <div className="boutique-bientot">
+                <strong>La boutique en ligne sera bientôt prête</strong>
+                <p>En attendant, passez nous voir à Saint-Bruno ou appelez-nous au <a href={INFOS.telHref}>{INFOS.tel}</a> : on vous réserve vos articles.</p>
+                <a className="btn btn-orange btn-plein" href={INFOS.telHref}>Appeler {INFOS.tel}</a>
+              </div>
+            ) : !form ? (
               <button className="btn btn-orange btn-plein btn-grand" onClick={() => (user ? setForm(true) : ouvrir("login"))}>Passer la commande</button>
             ) : (
               <form className="form" onSubmit={enLigne ? payer : commander} noValidate={enLigne}>
@@ -208,7 +214,7 @@ export default function Panier() {
               </form>
             )}
             {etat.msg && <div className={etat.envoi ? "alerte alerte-ok" : "alerte"} role="alert">{etat.msg}</div>}
-            {!user && <p className="petit centre">Un compte est requis pour commander — <button className="lien-discret" onClick={() => ouvrir("login")}>connexion ou création de compte</button>.</p>}
+            {BOUTIQUE_EN_LIGNE && !user && <p className="petit centre">Un compte est requis pour commander — <button className="lien-discret" onClick={() => ouvrir("login")}>connexion ou création de compte</button>.</p>}
           </aside>
         </div>
       )}

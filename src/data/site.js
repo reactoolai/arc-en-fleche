@@ -22,6 +22,9 @@ export const HORAIRE = [
 
 export const LIVRAISON = { seuil: 150, frais: 12.95 };
 
+// Commande en ligne de la boutique : mettre à true pour réactiver le paiement du panier (Clover déjà branché)
+export const BOUTIQUE_EN_LIGNE = false;
+
 export const SERVICES = [
   { nom: "Changement de corde et câbles", prix: "À partir de 45 $", desc: "Arcs à poulies et arbalètes — corde installée, synchronisation vérifiée, cire appliquée.", delai: "24 à 48 h", icone: "corde" },
   { nom: "Réglage et mise au point d'arc", prix: "À partir de 60 $", desc: "Tillering, alignement du repose-flèche, réglage du viseur et test en allée de tir.", delai: "48 h", icone: "arc" },
