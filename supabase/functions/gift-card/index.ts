@@ -290,13 +290,23 @@ Deno.serve(async (req) => {
       : v && typeof v === "object" ? Object.fromEntries(Object.entries(v as Record<string, unknown>).map(([k, x]) => [k, p < 3 ? forme(x, p + 1) : "…"]))
       : typeof v === "string" ? (/status|state|type|result/i.test("") ? v : `str(${v.length})`) : typeof v;
     const essais: Record<string, unknown> = {};
-    for (const chemin of [`/invoicingcheckoutservice/v1/checkouts/${g.checkout_session_id}`]) {
-      const r = await fetch(`${cloverApi()}${chemin}`, { headers: { Authorization: `Bearer ${privateToken}`, "X-Clover-Merchant-Id": merchantId, Accept: "application/json" } });
+    const scl = payEnv() === "sandbox" ? "https://scl-sandbox.dev.clover.com" : "https://scl.clover.com";
+    const sondes: [string, string][] = [
+      ["scl /v1/charges?limit=3", `${scl}/v1/charges?limit=3`],
+      ["scl /v1/orders?limit=3", `${scl}/v1/orders?limit=3`],
+      ["api /v3/payments", `${cloverApi()}/v3/merchants/${merchantId}/payments?limit=3&expand=order`],
+      ["api /v3/orders", `${cloverApi()}/v3/merchants/${merchantId}/orders?limit=3&expand=lineItems,payments`],
+    ];
+    for (const [nom, adresse] of sondes) {
+      const r = await fetch(adresse, { headers: { Authorization: `Bearer ${privateToken}`, "X-Clover-Merchant-Id": merchantId, Accept: "application/json" } });
       const d = await r.json().catch(() => null);
-      const statuts: Record<string, unknown> = {};
-      const fouiller = (v: unknown, pre: string, p = 0) => { if (v && typeof v === "object" && p < 4) for (const [k, x] of Object.entries(v as Record<string, unknown>)) { if (/status|state|paid|result|type$/i.test(k) && typeof x !== "object") statuts[pre + k] = x; fouiller(x, pre + k + ".", p + 1); } };
+      const trouves: string[] = [];
+      const fouiller = (v: unknown, pre: string, p = 0) => {
+        if (typeof v === "string") { if (v === g.checkout_session_id) trouves.push(pre + " = session"); else if (v.includes("Carte cadeau Arc")) trouves.push(pre + " ~ nom article"); }
+        else if (v && typeof v === "object" && p < 7) for (const [k, x] of Object.entries(v as Record<string, unknown>)) fouiller(x, pre + "." + k, p + 1);
+      };
       fouiller(d, "");
-      essais[chemin.replace(String(g.checkout_session_id), "{id}")] = { http: r.status, forme: forme(d), statuts };
+      essais[nom] = { http: r.status, forme: forme(d), trouves: trouves.slice(0, 8) };
     }
     const { data: evts } = await base.from("clover_webhook_events").select("received_at, verdict, signature_header, headers, body").order("received_at", { ascending: false }).limit(5);
     const webhooks = (evts ?? []).map((e) => {
