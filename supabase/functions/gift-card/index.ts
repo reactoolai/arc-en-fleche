@@ -256,21 +256,26 @@ async function finaliser(id: string, paymentId: string) {
     else { derniereErreur = error.message; if (error.code !== "23505") break; }
   }
 
+  if (!code) {
+    console.error("Code non généré", derniereErreur);
+    const equipe = env("GIFT_TEAM_EMAIL", "info@arcenfleche.com").split(",").map((x) => x.trim()).filter(Boolean);
+    await envoyerCourriel(equipe, `⚠ Carte cadeau payée mais code NON généré — ${argent(Number(g.amount))} — ${g.buyer_name}`,
+      `<p>Carte ${esc(id)} payée (paiement Clover ${esc(paymentId)}) mais le code n'a pas pu être généré : ${esc(derniereErreur)}</p>`).catch(console.error);
+    return json({ ok: false, error: derniereErreur }, 500);
+  }
+  const okDest = await envoyerCourriels({ ...g, code, payment_id: paymentId });
+  return json({ ok: true, code: "généré", emailSent: okDest });
+}
+
+// Envoie (ou renvoie) le courriel au destinataire et l'avis à l'équipe, et note le résultat sur la carte
+async function envoyerCourriels(g: Record<string, any>) {
   const c = {
     amount: Number(g.amount), recipientName: g.recipient_name, recipientEmail: g.recipient_email, buyerName: g.buyer_name,
     buyerEmail: g.buyer_email, message: g.message ?? "", physical: g.physical, address: g.shipping_address,
   } as ReturnType<typeof valider>;
-  const carte: Carte = { ...c, code, total: Number(g.total_charged), paymentId };
+  const carte: Carte = { ...c, code: g.code, total: Number(g.total_charged), paymentId: g.payment_id ?? "" };
   const equipe = env("GIFT_TEAM_EMAIL", "info@arcenfleche.com").split(",").map((x) => x.trim()).filter(Boolean);
-
-  if (!code) {
-    console.error("Code non généré", derniereErreur);
-    await envoyerCourriel(equipe, `⚠ Carte cadeau payée mais code NON généré — ${argent(c.amount)} — ${c.buyerName}`,
-      courrielEquipe({ ...carte, code: "NON GÉNÉRÉ — à créer manuellement" }) + `<p>Erreur : ${esc(derniereErreur)}</p>`).catch(console.error);
-    return json({ ok: false, error: derniereErreur }, 500);
-  }
-
-  const maj: Record<string, string> = {};
+  const maj: Record<string, string | null> = { email_error: null };
   let okDest = true;
   try {
     await envoyerCourriel([c.recipientEmail], `${c.buyerName} vous offre une carte cadeau Arc En Flèche de ${argent(c.amount)}`, courrielDestinataire(carte), c.buyerEmail);
@@ -282,8 +287,8 @@ async function finaliser(id: string, paymentId: string) {
     maj.team_notified_at = new Date().toISOString();
   } catch (e) { maj.email_error = `${maj.email_error ?? ""} | équipe : ${String((e as Error).message ?? e)}`.slice(0, 500); console.error("Courriel équipe", e); }
   maj.emails_done_at = new Date().toISOString();
-  await base.from("gift_cards").update(maj).eq("id", id);
-  return json({ ok: true, code: "généré", emailSent: okDest });
+  await db().from("gift_cards").update(maj).eq("id", g.id);
+  return okDest;
 }
 
 Deno.serve(async (req) => {
@@ -306,6 +311,21 @@ Deno.serve(async (req) => {
   if (body.action === "finalize") {
     if (req.headers.get("x-internal-key") !== env("SUPABASE_SERVICE_ROLE_KEY")) return json({ ok: false, error: "Interdit" }, 403);
     return finaliser(txt(body.id, 40), txt(body.paymentId, 80));
+  }
+
+  // Renvoi des courriels d'une carte active, réservé aux administrateurs connectés
+  if (body.action === "resend") {
+    const url = env("SUPABASE_URL");
+    const { data: u } = await createClient(url, env("SUPABASE_ANON_KEY"), { global: { headers: { Authorization: req.headers.get("Authorization") ?? "" } }, auth: { persistSession: false } }).auth.getUser();
+    if (!u?.user) return json({ ok: false, error: "Connexion requise" }, 401);
+    const { data: prof } = await db().from("profiles").select("is_admin").eq("id", u.user.id).maybeSingle();
+    if (!prof?.is_admin) return json({ ok: false, error: "Réservé aux administrateurs" }, 403);
+    const { data: g } = await db().from("gift_cards").select("*").eq("id", txt(body.id, 40)).maybeSingle();
+    if (!g || !g.code || (g.status !== "active" && g.status !== "used")) return json({ ok: false, error: "Carte introuvable ou non payée" }, 404);
+    expediteur = null; // relire le domaine vérifié chez Resend
+    const ok = await envoyerCourriels(g);
+    const { data: apres } = await db().from("gift_cards").select("email_error").eq("id", g.id).maybeSingle();
+    return json({ ok, error: ok ? null : (apres?.email_error ?? "Envoi refusé") });
   }
 
   // État d'une carte pour la page de confirmation (aucune donnée sensible, pas de code)

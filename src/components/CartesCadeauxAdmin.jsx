@@ -140,6 +140,15 @@ function FicheCarte({ carte, fermer, recharger }) {
     await recharger(); chargerHist();
   };
 
+  const renvoyer = async () => {
+    setEtat({ envoi: true, ok: false, msg: "" });
+    const { data, error } = await supabase.functions.invoke("gift-card", { body: { action: "resend", id: carte.id } });
+    let res = data;
+    if (error && error.context?.json) res = await error.context.json().catch(() => null);
+    setEtat({ envoi: false, ok: !!res?.ok, msg: res?.ok ? `Courriel envoyé à ${carte.recipient_email}.` : `Envoi refusé : ${res?.error || "erreur"}` });
+    recharger();
+  };
+
   const utilisable = carte.status === "active";
 
   return (
@@ -157,7 +166,10 @@ function FicheCarte({ carte, fermer, recharger }) {
         </div>
       </div>
 
-      {carte.email_error && <p className="alerte">Courriel non livré : {carte.email_error}. Transmettez le code au destinataire ({carte.recipient_email}).</p>}
+      {carte.email_error && <p className="alerte">Courriel non livré au destinataire ({carte.recipient_email}). Transmettez-lui le code, ou renvoyez le courriel une fois le domaine vérifié chez Resend. <small style={{ display: "block", opacity: .75 }}>{carte.email_error}</small></p>}
+      <div className="actions-ligne cca-actions">
+        <button type="button" className="btn btn-contour btn-petit" disabled={etat.envoi} onClick={renvoyer}>{carte.recipient_email_sent_at ? "Renvoyer le courriel" : "Envoyer le courriel"} à {carte.recipient_email}</button>
+      </div>
 
       {utilisable ? (
         <form className="cca-deduire form" onSubmit={deduire}>
