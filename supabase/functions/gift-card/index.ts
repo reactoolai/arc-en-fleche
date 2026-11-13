@@ -24,7 +24,7 @@ const CORS = {
 };
 
 const PRESETS = [100, 200, 500, 1000];
-const MIN = 25;
+const MIN = 5;
 const MAX = 5000;
 const FRAIS_PHYSIQUE = 5.99;
 

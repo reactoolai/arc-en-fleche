@@ -6,7 +6,7 @@ import CarteCadeau, { montantTxt } from "../components/CarteCadeau.jsx";
 
 const PRESETS = [100, 200, 500, 1000];
 const FRAIS_PHYSIQUE = 5.99;
-const MIN = 25;
+const MIN = 5;
 const MAX = 5000;
 const PROVINCES = ["QC", "ON", "NB", "NS", "PE", "NL", "MB", "SK", "AB", "BC", "YT", "NT", "NU"];
 const courrielOk = (s) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s.trim());
