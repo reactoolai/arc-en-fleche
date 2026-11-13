@@ -10,6 +10,9 @@ export const INFOS = {
   facebook: "https://www.facebook.com/profile.php?id=100063644495251",
   carte: "https://www.google.com/maps?q=413+Rue+St-Alphonse+Saint-Bruno+QC+G0W2L0&output=embed",
   itineraire: "https://www.google.com/maps/dir/?api=1&destination=413+Rue+St-Alphonse+Saint-Bruno+QC+G0W2L0",
+  // Position de la boutique sur la carte (413, rue St-Alphonse)
+  lat: 48.4684886,
+  lon: -71.6547552,
 };
 
 // [jour JS (0 = dimanche), ouverture, fermeture] en heures décimales
@@ -21,6 +24,9 @@ export const HORAIRE = [
 ];
 
 export const LIVRAISON = { seuil: 150, frais: 12.95 };
+
+// Moyens de paiement affichés dans le pied de page (acceptés sur la page de paiement Clover)
+export const PAIEMENTS = ["visa", "mastercard", "applepay", "googlepay"];
 
 // Commande en ligne de la boutique : mettre à true pour réactiver le paiement du panier (Clover déjà branché)
 export const BOUTIQUE_EN_LIGNE = false;

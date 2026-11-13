@@ -175,6 +175,12 @@ function courrielDestinataire(c: Carte) {
     Arc En Flèche · 413, rue St-Alphonse, Saint-Bruno-Lac-Saint-Jean (Québec) G0W 2L0<br>
     418 343-3301 · <a href="${site}" style="color:#7a5532">arcenfleche.com</a>
   </td></tr>
+  <tr><td style="background:#ffffff;padding:18px 36px 22px;text-align:center;border-top:1px solid #e8dfcf">
+    <a href="https://reactool.ai" target="_blank" style="text-decoration:none;color:#6f7a72;font:12px Arial,sans-serif;letter-spacing:1px;text-transform:uppercase">
+      <span style="display:block;margin-bottom:8px">Propulsé par</span>
+      <img src="${site}/images/reactool-ai.png" width="132" height="25" alt="Reactool AI" style="display:inline-block;border:0;vertical-align:middle">
+    </a>
+  </td></tr>
 </table></td></tr></table></body></html>`;
 }
 

@@ -6,6 +6,7 @@ import { etatOuverture } from "../lib/format.js";
 import { CarteProduit, PhotoProduit, SqueletteCartes } from "../components/Produit.jsx";
 import Apparition from "../components/Apparition.jsx";
 import CarteCadeau from "../components/CarteCadeau.jsx";
+import CarteLieu from "../components/CarteLieu.jsx";
 import { BoutonPhoto, Txt } from "../components/Editable.jsx";
 import { useContenu } from "../lib/contenu.jsx";
 import { Epingle, Fleche, Horloge, IconeService, Telephone } from "../components/Icons.jsx";
@@ -240,9 +241,7 @@ export default function Accueil() {
             </ul>
             <a href={INFOS.itineraire} target="_blank" rel="noreferrer" className="btn btn-fonce">Obtenir l'itinéraire <Fleche s={16} /></a>
           </div>
-          <div className="carte-geo">
-            <iframe src={INFOS.carte} loading="lazy" referrerPolicy="no-referrer-when-downgrade" title={`Carte — ${INFOS.rue}`} />
-          </div>
+          <CarteLieu />
         </div>
       </section>
     </>

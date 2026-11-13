@@ -5,6 +5,7 @@ import { etatOuverture } from "../lib/format.js";
 import { useContenu } from "../lib/contenu.jsx";
 import { Txt } from "./Editable.jsx";
 import { Facebook } from "./Icons.jsx";
+import LogosPaiement from "./LogosPaiement.jsx";
 
 export default function Pied() {
   const { cats } = useCatalog();
@@ -57,6 +58,10 @@ export default function Pied() {
             <a href={INFOS.telHref}>{INFOS.tel}</a> · <a href={`mailto:${INFOS.courriel}`}>{INFOS.courriel}</a>
           </address>
         </div>
+      </div>
+      <div className="conteneur pied-paiement">
+        <span>Paiement sécurisé</span>
+        <LogosPaiement />
       </div>
       <div className="conteneur pied-bas">
         <span>© {new Date().getFullYear()} Arc En Flèche. Tous droits réservés.</span>

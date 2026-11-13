@@ -4,6 +4,7 @@ import { etatOuverture } from "../lib/format.js";
 import { supabase } from "../lib/supabase.js";
 import { useContenu } from "../lib/contenu.jsx";
 import { Txt } from "../components/Editable.jsx";
+import CarteLieu from "../components/CarteLieu.jsx";
 import { Epingle, Facebook, Horloge, Telephone } from "../components/Icons.jsx";
 
 export default function Contact() {
@@ -52,7 +53,7 @@ export default function Contact() {
           <ul className="heures">
             {HORAIRE.map((h) => <li key={h.label}><span>{h.label}</span><strong>{h.plage}</strong></li>)}
           </ul>
-          <div className="carte-geo"><iframe src={INFOS.carte} loading="lazy" referrerPolicy="no-referrer-when-downgrade" title={`Carte — ${INFOS.rue}`} /></div>
+          <CarteLieu />
         </div>
         <form className="contact-form form" onSubmit={envoyer}>
           <h2 className="h2-petit">Écrivez-nous</h2>
