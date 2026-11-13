@@ -157,6 +157,8 @@ function FicheCarte({ carte, fermer, recharger }) {
         </div>
       </div>
 
+      {carte.email_error && <p className="alerte">Courriel non livré : {carte.email_error}. Transmettez le code au destinataire ({carte.recipient_email}).</p>}
+
       {utilisable ? (
         <form className="cca-deduire form" onSubmit={deduire}>
           <div className="form-2">

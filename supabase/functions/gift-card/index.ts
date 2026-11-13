@@ -205,7 +205,39 @@ ${ligne("Paiement Clover", `${esc(c.paymentId)}${c.receiptUrl ? ` · <a href="${
 
 const db = () => createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
 
-// Finalisation (appelée seulement par clover-webhook, après vérification de la signature Clover)
+const refCarte = (id: string) => id.slice(0, 8).toUpperCase();
+const nomArticle = (montant: number, pour: string) => `Carte cadeau Arc En Flèche ${argent(montant)} — pour ${pour}`.slice(0, 100);
+
+// Vérification directe auprès de Clover : la commande de cette carte est-elle payée ?
+// Sert de filet de sécurité si le webhook n'arrive pas. Renvoie l'ID du paiement Clover, ou null.
+async function paiementClover(g: Record<string, unknown>): Promise<string | null> {
+  const merchantId = env("CLOVER_MERCHANT_ID");
+  const depuis = new Date(String(g.created_at)).getTime() - 60_000;
+  const r = await fetch(`${cloverApi()}/v3/merchants/${merchantId}/orders?filter=${encodeURIComponent(`createdTime>=${depuis}`)}&expand=lineItems,payments&limit=100`, {
+    headers: { Authorization: `Bearer ${env("CLOVER_PRIVATE_TOKEN")}`, Accept: "application/json" },
+  });
+  if (!r.ok) { console.error("Clover orders", r.status); return null; }
+  const d = await r.json().catch(() => null);
+  const ref = `réf. ${refCarte(String(g.id))}`;
+  const ancienNom = nomArticle(Number(g.amount), String(g.recipient_name));
+  const totalCents = Math.round(Number(g.total_charged) * 100);
+  const candidats: string[] = [];
+  for (const o of (d?.elements ?? []) as Record<string, any>[]) {
+    if (o.paymentState !== "PAID" || Number(o.total) !== totalCents) continue;
+    const noms: string[] = (o.lineItems?.elements ?? []).map((l: any) => String(l.name ?? ""));
+    // Cartes créées avant l'ajout de la référence : nom d'article exact + même total
+    if (!noms.some((n) => n.includes(ref) || n === ancienNom || n === ancienNom.slice(0, n.length) && n.length > 40)) continue;
+    const p = (o.payments?.elements ?? []).find((x: any) => x.result === "SUCCESS");
+    if (p?.id) candidats.push(String(p.id));
+  }
+  if (!candidats.length) return null;
+  // Un paiement ne sert qu'une fois
+  const { data: pris } = await db().from("gift_cards").select("payment_id").in("payment_id", candidats);
+  const dejaPris = new Set((pris ?? []).map((x) => x.payment_id));
+  return candidats.find((c) => !dejaPris.has(c)) ?? null;
+}
+
+// Finalisation : appelée par clover-webhook (signature vérifiée) ou après vérification directe auprès de Clover
 async function finaliser(id: string, paymentId: string) {
   const base = db();
   const { data: g } = await base.from("gift_cards").select("*").eq("id", id).maybeSingle();
@@ -216,9 +248,10 @@ async function finaliser(id: string, paymentId: string) {
   let derniereErreur = "";
   for (let i = 0; i < 6 && !code; i++) {
     const essai = genererCode();
-    const { error } = await base.from("gift_cards").update({
+    const { data: maj, error } = await base.from("gift_cards").update({
       code: essai, status: "active", payment_id: paymentId, paid_at: new Date().toISOString(),
-    }).eq("id", id).eq("status", "pending");
+    }).eq("id", id).eq("status", "pending").select("id");
+    if (!error && !maj?.length) return json({ ok: true, deja: true }); // finalisée entre-temps (webhook et vérification simultanés)
     if (!error) code = essai;
     else { derniereErreur = error.message; if (error.code !== "23505") break; }
   }
@@ -242,13 +275,14 @@ async function finaliser(id: string, paymentId: string) {
   try {
     await envoyerCourriel([c.recipientEmail], `${c.buyerName} vous offre une carte cadeau Arc En Flèche de ${argent(c.amount)}`, courrielDestinataire(carte), c.buyerEmail);
     maj.recipient_email_sent_at = new Date().toISOString();
-  } catch (e) { okDest = false; console.error("Courriel destinataire", e); }
+  } catch (e) { okDest = false; maj.email_error = String((e as Error).message ?? e).slice(0, 300); console.error("Courriel destinataire", e); }
   try {
     await envoyerCourriel(equipe, `Nouvelle carte cadeau : ${argent(c.amount)}${c.physical ? " + carte physique" : ""} — ${c.buyerName} → ${c.recipientName}${payEnv() === "sandbox" ? " [TEST]" : ""}`,
       courrielEquipe(carte) + (okDest ? "" : "<p style='color:#b03122;font-weight:700'>⚠ Le courriel au destinataire n'a pas pu être envoyé : transmettez-lui le code manuellement.</p>"), c.buyerEmail);
     maj.team_notified_at = new Date().toISOString();
-  } catch (e) { console.error("Courriel équipe", e); }
-  if (Object.keys(maj).length) await base.from("gift_cards").update(maj).eq("id", id);
+  } catch (e) { maj.email_error = `${maj.email_error ?? ""} | équipe : ${String((e as Error).message ?? e)}`.slice(0, 500); console.error("Courriel équipe", e); }
+  maj.emails_done_at = new Date().toISOString();
+  await base.from("gift_cards").update(maj).eq("id", id);
   return json({ ok: true, code: "généré", emailSent: okDest });
 }
 
@@ -276,44 +310,19 @@ Deno.serve(async (req) => {
 
   // État d'une carte pour la page de confirmation (aucune donnée sensible, pas de code)
   if (body.action === "status") {
-    const { data: g } = await db().from("gift_cards").select("status, amount, total_charged, recipient_email, recipient_name, buyer_name, physical, recipient_email_sent_at, team_notified_at, payment_environment").eq("id", txt(body.id, 40)).maybeSingle();
+    const colonnes = "id, status, amount, total_charged, recipient_email, recipient_name, buyer_name, physical, recipient_email_sent_at, emails_done_at, email_error, payment_environment, created_at, checkout_session_id";
+    let { data: g } = await db().from("gift_cards").select(colonnes).eq("id", txt(body.id, 40)).maybeSingle();
     if (!g) return json({ ok: false, error: "Introuvable" }, 404);
-    return json({ ok: true, status: g.status, amount: Number(g.amount), total: Number(g.total_charged), recipientEmail: g.recipient_email, recipientName: g.recipient_name, buyerName: g.buyer_name, physique: g.physical, emailSent: Boolean(g.recipient_email_sent_at), termine: Boolean(g.recipient_email_sent_at || g.team_notified_at), environment: g.payment_environment });
-  }
-
-  // Diagnostic temporaire (structure seulement, aucune donnée personnelle) : exige l'ID d'une carte existante
-  if (body.action === "diag") {
-    const base = db();
-    const { data: g } = await base.from("gift_cards").select("id, status, checkout_session_id, created_at").eq("id", txt(body.id, 40)).maybeSingle();
-    if (!g) return json({ ok: false }, 404);
-    const forme = (v: unknown, p = 0): unknown => Array.isArray(v) ? [v.length, v.length && p < 3 ? forme(v[0], p + 1) : null]
-      : v && typeof v === "object" ? Object.fromEntries(Object.entries(v as Record<string, unknown>).map(([k, x]) => [k, p < 3 ? forme(x, p + 1) : "…"]))
-      : typeof v === "string" ? (/status|state|type|result/i.test("") ? v : `str(${v.length})`) : typeof v;
-    const essais: Record<string, unknown> = {};
-    const scl = payEnv() === "sandbox" ? "https://scl-sandbox.dev.clover.com" : "https://scl.clover.com";
-    const sondes: [string, string][] = [
-      ["scl /v1/charges?limit=3", `${scl}/v1/charges?limit=3`],
-      ["scl /v1/orders?limit=3", `${scl}/v1/orders?limit=3`],
-      ["api /v3/payments", `${cloverApi()}/v3/merchants/${merchantId}/payments?limit=3&expand=order`],
-      ["api /v3/orders", `${cloverApi()}/v3/merchants/${merchantId}/orders?limit=3&expand=lineItems,payments`],
-    ];
-    for (const [nom, adresse] of sondes) {
-      const r = await fetch(adresse, { headers: { Authorization: `Bearer ${privateToken}`, "X-Clover-Merchant-Id": merchantId, Accept: "application/json" } });
-      const d = await r.json().catch(() => null);
-      const trouves: string[] = [];
-      const fouiller = (v: unknown, pre: string, p = 0) => {
-        if (typeof v === "string") { if (v === g.checkout_session_id) trouves.push(pre + " = session"); else if (v.includes("Carte cadeau Arc")) trouves.push(pre + " ~ nom article"); }
-        else if (v && typeof v === "object" && p < 7) for (const [k, x] of Object.entries(v as Record<string, unknown>)) fouiller(x, pre + "." + k, p + 1);
-      };
-      fouiller(d, "");
-      essais[nom] = { http: r.status, forme: forme(d), trouves: trouves.slice(0, 8) };
+    // Webhook pas (encore) arrivé : on demande directement à Clover si c'est payé (cartes de moins de 3 jours)
+    if (g.status === "pending" && g.checkout_session_id && configure && Date.now() - new Date(g.created_at).getTime() < 3 * 86400_000) {
+      const paymentId = await paiementClover(g).catch((e) => { console.error("paiementClover", e); return null; });
+      if (paymentId) {
+        await finaliser(g.id, paymentId);
+        ({ data: g } = await db().from("gift_cards").select(colonnes).eq("id", g.id).maybeSingle());
+        if (!g) return json({ ok: false, error: "Introuvable" }, 404);
+      }
     }
-    const { data: evts } = await base.from("clover_webhook_events").select("received_at, verdict, signature_header, headers, body").order("received_at", { ascending: false }).limit(5);
-    const webhooks = (evts ?? []).map((e) => {
-      let cles: unknown = null; try { const j = JSON.parse(e.body ?? ""); cles = Object.fromEntries(Object.entries(j).map(([k, x]) => [k, /^(type|status)$/.test(k) ? x : typeof x === "string" ? `str(${(x as string).length})` : typeof x])); } catch { cles = `texte(${(e.body ?? "").length})`; }
-      return { at: e.received_at, verdict: e.verdict, signature: String(e.signature_header ?? "").replace(/[0-9a-zA-Z+/=]{12,}/g, (m) => `…(${m.length})`), enTetes: Object.keys(e.headers ?? {}), cles };
-    });
-    return json({ ok: true, carte: { status: g.status, session: Boolean(g.checkout_session_id), cree: g.created_at }, clover: essais, webhooks });
+    return json({ ok: true, status: g.status, amount: Number(g.amount), total: Number(g.total_charged), recipientEmail: g.recipient_email, recipientName: g.recipient_name, buyerName: g.buyer_name, physique: g.physical, emailSent: Boolean(g.recipient_email_sent_at), termine: Boolean(g.emails_done_at), emailError: g.email_error ?? null, environment: g.payment_environment });
   }
 
   if (body.action !== "checkout") return json({ ok: false, error: "Action inconnue" }, 400);
@@ -336,7 +345,7 @@ Deno.serve(async (req) => {
   // 2) Session de paiement Clover (Hosted Checkout) — montants fixés ici, jamais par le navigateur
   const site = siteUrl();
   const [prenom, ...reste] = c.buyerName.split(" ");
-  const lineItems = [{ name: `Carte cadeau Arc En Flèche ${argent(c.amount)} — pour ${c.recipientName}`.slice(0, 127), price: Math.round(c.amount * 100), unitQty: 1 }];
+  const lineItems = [{ name: `${nomArticle(c.amount, c.recipientName)} — réf. ${refCarte(g.id)}`, price: Math.round(c.amount * 100), unitQty: 1 }];
   if (c.physical) lineItems.push({ name: "Carte physique et envoi postal", price: Math.round(FRAIS_PHYSIQUE * 100), unitQty: 1 });
   const rep = await fetch(`${cloverApi()}/invoicingcheckoutservice/v1/checkouts`, {
     method: "POST",

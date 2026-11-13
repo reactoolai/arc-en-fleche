@@ -63,6 +63,7 @@ export default function CartesCadeaux() {
         return;
       }
       if (essais === 15) setAttente({ id, longue: true });
+      if (essais >= 45) { fin = true; setAttente({ id, longue: true, arret: true }); return; } // ~3 minutes : on arrête d'interroger
       setTimeout(verifier, essais < 15 ? 2000 : 5000);
     };
     verifier();
@@ -102,11 +103,14 @@ export default function CartesCadeaux() {
   if (attente) {
     return (
       <div className="conteneur section vide-boite cc-attente">
-        <div className="cc-sablier" aria-hidden="true" />
-        <h1>Confirmation du paiement…</h1>
-        <p>{attente.longue
-          ? "La confirmation de Clover prend plus de temps que prévu. Si votre paiement est accepté, la carte sera envoyée automatiquement dès sa réception : vous pouvez fermer cette page."
-          : "Nous attendons la confirmation de Clover. La carte sera envoyée dès que le paiement est confirmé."}</p>
+        {!attente.arret && <div className="cc-sablier" aria-hidden="true" />}
+        <h1>{attente.arret ? "Paiement en cours de vérification" : "Confirmation du paiement…"}</h1>
+        <p>{attente.arret
+          ? <>Nous n'avons pas encore reçu la confirmation de Clover. Si votre carte a été débitée, la carte cadeau sera envoyée automatiquement. Un doute ? Appelez-nous au <a href={INFOS.telHref}>{INFOS.tel}</a>.</>
+          : attente.longue
+            ? "La confirmation de Clover prend plus de temps que prévu. Si votre paiement est accepté, la carte sera envoyée automatiquement : vous pouvez fermer cette page."
+            : "Nous vérifions votre paiement auprès de Clover. La carte sera envoyée dès qu'il est confirmé."}</p>
+        {attente.arret && <button className="btn btn-orange" onClick={() => window.location.reload()}>Vérifier à nouveau</button>}
       </div>
     );
   }
