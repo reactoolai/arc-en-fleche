@@ -14,11 +14,6 @@ import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 const env = (k: string, d = "") => (Deno.env.get(k) ?? d).trim();
 const rep = (status: number, msg: string) => new Response(msg, { status });
 
-async function hmacHex(secret: string, message: string) {
-  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(message));
-  return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
-}
 const egal = (a: string, b: string) => {
   if (a.length !== b.length) return false;
   let d = 0;
@@ -26,37 +21,51 @@ const egal = (a: string, b: string) => {
   return d === 0;
 };
 
+async function hmac(secret: string, message: string) {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const octets = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(message)));
+  return { hex: [...octets].map((b) => b.toString(16).padStart(2, "0")).join(""), b64: btoa(String.fromCharCode(...octets)) };
+}
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") return rep(405, "Méthode non permise");
   const brut = await req.text();
+  const url = env("SUPABASE_URL");
+  const db = createClient(url, env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
+
+  // Journal de diagnostic : chaque appel est enregistré avec son verdict
+  const enTetes: Record<string, string> = {};
+  req.headers.forEach((v, k) => { if (!/^(authorization|apikey|cookie)$/i.test(k)) enTetes[k] = v.slice(0, 300); });
+  const entete = req.headers.get("clover-signature") ?? "";
+  const noter = async (verdict: string) => {
+    await db.from("clover_webhook_events").insert({ verdict, signature_header: entete.slice(0, 400), headers: enTetes, body: brut.slice(0, 4000) }).then(() => {}, (e) => console.error("journal", e));
+  };
 
   const secret = env("CLOVER_WEBHOOK_SECRET");
-  if (!secret) { console.error("CLOVER_WEBHOOK_SECRET manquant : webhook refusé"); return rep(500, "Webhook non configuré"); }
+  if (!secret) { await noter("secret_manquant"); return rep(500, "Webhook non configuré"); }
 
-  const entete = req.headers.get("clover-signature") ?? req.headers.get("Clover-Signature") ?? "";
-  const parts = Object.fromEntries(entete.split(",").map((p) => p.trim().split("=", 2) as [string, string]));
+  // Signature Clover : « t=<horodatage>,v1=<signature> ». On accepte la signature de "<t>.<corps>"
+  // (format documenté) ou du corps seul, en hexadécimal ou en base64.
+  const parts = Object.fromEntries(entete.split(",").map((p) => { const i = p.indexOf("="); return [p.slice(0, i).trim(), p.slice(i + 1).trim()]; }));
   const t = parts.t ?? "";
-  const v1 = (parts.v1 ?? "").toLowerCase();
-  if (!t || !v1) { console.error("Signature absente", entete); return rep(401, "Signature absente"); }
-  const attendu = await hmacHex(secret, `${t}.${brut}`);
-  if (!egal(attendu, v1)) { console.error("Signature invalide"); return rep(401, "Signature invalide"); }
-  // Rejeu : horodatage de plus de 15 minutes refusé (t en secondes ou millisecondes)
-  const ts = Number(t) > 1e12 ? Number(t) / 1000 : Number(t);
-  if (Number.isFinite(ts) && Math.abs(Date.now() / 1000 - ts) > 900) { console.error("Horodatage trop ancien", t); return rep(401, "Expiré"); }
+  const v1 = parts.v1 ?? entete.trim();
+  if (!v1) { await noter("signature_absente"); return rep(401, "Signature absente"); }
+  const candidats = [await hmac(secret, `${t}.${brut}`), await hmac(secret, brut)];
+  const valide = candidats.some((c) => egal(c.hex, v1.toLowerCase()) || egal(c.b64, v1));
+  if (!valide) { await noter("signature_invalide"); return rep(401, "Signature invalide"); }
 
   let evt: Record<string, unknown>;
   try { evt = JSON.parse(brut); } catch { return rep(400, "JSON invalide"); }
   console.log("Webhook Clover", JSON.stringify({ type: evt.type, status: evt.status, id: evt.id, data: evt.data }));
 
   if (env("CLOVER_MERCHANT_ID") && evt.merchantId && evt.merchantId !== env("CLOVER_MERCHANT_ID")) return rep(200, "Autre marchand ignoré");
-  if (evt.type !== "PAYMENT" || evt.status !== "APPROVED") return rep(200, "Ignoré");
+  if (evt.type !== "PAYMENT" || evt.status !== "APPROVED") { await noter(`ignore_${evt.type}_${evt.status}`); return rep(200, "Ignoré"); }
 
-  const session = String(evt.data ?? "");
+  const session = String(evt.data ?? evt.checkoutSessionId ?? "");
   const paymentId = String(evt.id ?? "");
-  if (!session) return rep(200, "Sans session");
+  if (!session) { await noter("sans_session"); return rep(200, "Sans session"); }
+  await noter("accepte");
 
-  const url = env("SUPABASE_URL");
-  const db = createClient(url, env("SUPABASE_SERVICE_ROLE_KEY"), { auth: { persistSession: false } });
   const appel = async (fonction: string, id: string) => {
     const r = await fetch(`${url}/functions/v1/${fonction}`, {
       method: "POST",

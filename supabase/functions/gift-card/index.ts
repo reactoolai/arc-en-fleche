@@ -281,6 +281,31 @@ Deno.serve(async (req) => {
     return json({ ok: true, status: g.status, amount: Number(g.amount), total: Number(g.total_charged), recipientEmail: g.recipient_email, recipientName: g.recipient_name, buyerName: g.buyer_name, physique: g.physical, emailSent: Boolean(g.recipient_email_sent_at), termine: Boolean(g.recipient_email_sent_at || g.team_notified_at), environment: g.payment_environment });
   }
 
+  // Diagnostic temporaire (structure seulement, aucune donnée personnelle) : exige l'ID d'une carte existante
+  if (body.action === "diag") {
+    const base = db();
+    const { data: g } = await base.from("gift_cards").select("id, status, checkout_session_id, created_at").eq("id", txt(body.id, 40)).maybeSingle();
+    if (!g) return json({ ok: false }, 404);
+    const forme = (v: unknown, p = 0): unknown => Array.isArray(v) ? [v.length, v.length && p < 3 ? forme(v[0], p + 1) : null]
+      : v && typeof v === "object" ? Object.fromEntries(Object.entries(v as Record<string, unknown>).map(([k, x]) => [k, p < 3 ? forme(x, p + 1) : "…"]))
+      : typeof v === "string" ? (/status|state|type|result/i.test("") ? v : `str(${v.length})`) : typeof v;
+    const essais: Record<string, unknown> = {};
+    for (const chemin of [`/invoicingcheckoutservice/v1/checkouts/${g.checkout_session_id}`]) {
+      const r = await fetch(`${cloverApi()}${chemin}`, { headers: { Authorization: `Bearer ${privateToken}`, "X-Clover-Merchant-Id": merchantId, Accept: "application/json" } });
+      const d = await r.json().catch(() => null);
+      const statuts: Record<string, unknown> = {};
+      const fouiller = (v: unknown, pre: string, p = 0) => { if (v && typeof v === "object" && p < 4) for (const [k, x] of Object.entries(v as Record<string, unknown>)) { if (/status|state|paid|result|type$/i.test(k) && typeof x !== "object") statuts[pre + k] = x; fouiller(x, pre + k + ".", p + 1); } };
+      fouiller(d, "");
+      essais[chemin.replace(String(g.checkout_session_id), "{id}")] = { http: r.status, forme: forme(d), statuts };
+    }
+    const { data: evts } = await base.from("clover_webhook_events").select("received_at, verdict, signature_header, headers, body").order("received_at", { ascending: false }).limit(5);
+    const webhooks = (evts ?? []).map((e) => {
+      let cles: unknown = null; try { const j = JSON.parse(e.body ?? ""); cles = Object.fromEntries(Object.entries(j).map(([k, x]) => [k, /^(type|status)$/.test(k) ? x : typeof x === "string" ? `str(${(x as string).length})` : typeof x])); } catch { cles = `texte(${(e.body ?? "").length})`; }
+      return { at: e.received_at, verdict: e.verdict, signature: String(e.signature_header ?? "").replace(/[0-9a-zA-Z+/=]{12,}/g, (m) => `…(${m.length})`), enTetes: Object.keys(e.headers ?? {}), cles };
+    });
+    return json({ ok: true, carte: { status: g.status, session: Boolean(g.checkout_session_id), cree: g.created_at }, clover: essais, webhooks });
+  }
+
   if (body.action !== "checkout") return json({ ok: false, error: "Action inconnue" }, 400);
   if (!configure) return json({ ok: false, error: "Le paiement en ligne n'est pas encore activé. Appelez-nous au 418 343-3301." }, 503);
 
