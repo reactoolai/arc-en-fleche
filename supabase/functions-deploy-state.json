@@ -3,11 +3,11 @@
   "functions": {
     "clover-webhook": {
       "hasChanged": false,
-      "hash": "b9555e37128839d4e3069ab4d83713a3714896ca892df3c30b6ff69559309137"
+      "hash": "1f8fcf6ae81ac699bd142c81319030c88cd3d84f95a89ff05f07e14c8ff8a0a4"
     },
     "gift-card": {
       "hasChanged": false,
-      "hash": "c8326ee43712eda11d19a1347c48704d656ba38537a1c24d0e820a7666c3b099"
+      "hash": "e8eb69c09f196c343076329d46cd6bd89e59a43b2c3322b8fd8f1c08b513d2ba"
     },
     "shop-checkout": {
       "hasChanged": false,
